@@ -9,13 +9,13 @@ BSPS = \
 	clock.o \
 	$(END_OF_LIST)
 
-ELF = blinky2
+ELF = main
 OBJS = lcd.o font_x5x7.o interrupt_table.o
 
 all : $(ELF).elf
 
 flash : $(ELF).elf
-	sudo rxusb -v $(ELF).elf
+	rxusb -v $(ELF).elf
 
 %.elf : crt0.o %.o $(OBJS) bsp.a rx62n.ld Makefile
 	rx-elf-gcc $(CFLAGS) -nostartfiles crt0.o $*.o $(OBJS) bsp.a -o $@ -Trx62n.ld
@@ -34,8 +34,8 @@ bsp.a : $(BSPS)
 %.o : %.S
 	rx-elf-gcc $(CFLAGS) -c $< -o $@
 
-blinky2.zip :
-	zip -9 blinky2.zip crt0.S *.c *.h rx62n.ld Makefile include/*
+main.zip :
+	zip -9 main.zip crt0.S *.c *.h rx62n.ld Makefile include/*
 
 #-----------------------------------------------------------------------------
 
