@@ -10,7 +10,13 @@ BSPS = \
 	$(END_OF_LIST)
 
 ELF = main
-OBJS = aversive.o can.o hwsetup.o lcd.o font_x5x7.o interrupt_table.o
+OBJS =				\
+	hwsetup.o		\
+	led_task.o		\
+	swatch_task.o		\
+	aversive.o can.o	\
+	lcd.o font_x5x7.o	\
+	interrupt_table.o
 
 all : $(ELF).elf
 

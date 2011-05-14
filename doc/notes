@@ -1,8 +1,10 @@
-using the rx62n kit from linux
+-- using the rx62n kit from linux
+
 
 -- installing a toolchain
  . http://www.massimogaggero.it/node/7
  . registration needed
+
 
 -- installing jlink commander (not needed)
  . segger has made a linux (beta) version of their jlink commander software
@@ -10,6 +12,7 @@ using the rx62n kit from linux
  . to install jlink commander follow the instructions in the README file
  . /etc/init.d/udev restart
  . run JlinkEXE
+
 
 -- flashing the memory
 
@@ -24,6 +27,7 @@ Plug in the USB cable.  Your /var/log/messages should show a USB device of 045b:
 Run "rxusb -v your_program.elf"  (rxusb is one of my flash tools).  You'll either need to be root to do this, or use udev to make 045b:0025 world-writable.  Of course, you could make rxusb setuid-root too.
 Turn SW5.2 OFF (the MCU mode now matches "RUN") and press RESET (SW4).  Your program should be running now!
 
+
 -- references and links
 http://www.renesas.eu//products/mpumcu/rx/Documentation.jsp
 http://www.renesasrulz.com/message/10236
@@ -31,3 +35,8 @@ https://github.com/Zizzle/FreeRTOS-RDK-demo/tree/master/Demo
 http://www.segger.com/cms/j-link-rx.html
 https://github.com/nullsub/RX62n-media
 http://www.delorie.com/electronics/rx-stick/
+
+
+-- todos
+freertos contains everything needed to deal with interrupts
+. vects.c for interrupt vectors

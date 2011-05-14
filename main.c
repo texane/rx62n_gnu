@@ -4,6 +4,8 @@
 #include "clock.h"
 #include "aversive.h"
 #include "hwsetup.h"
+#include "swatch_task.h"
+#include "led_task.h"
 
 
 /* can globals */
@@ -91,13 +93,16 @@ static int do_square(aversive_dev_t* dev)
 
 static void do_test(aversive_dev_t* dev)
 {
-  lcd_string(2, 0, "do_test");
+  lcd_string(2, 0, "do_test   ");
 
-  while (1) 
+#if 0 /* disable aversive */
+  while (1)
   {
     wait_abit();
     do_square(dev);
   }
+#endif
+
 }
 
 
@@ -108,11 +113,20 @@ static int initialize(void)
   /* 100MHz CPU clock, configure ports, peripherals ... */
   HardwareSetup();
 
-  /* init aversive device */
+  /* init devices */
+  lcd_open();
+  lcd_string(2, 0, "initialize");
+
+#if 0 /* disable_aversive */
+
   if (aversive_open(&aversive_device) == -1)
     return -1;
 
-  lcd_open();
+#endif
+
+  /* initialize the tasks */
+  led_task_initialize();
+  swatch_task_initialize();
 
   /* start the scheduler */
   tick_start();
@@ -130,6 +144,8 @@ static void finalize(void)
 
 void tick_isr(void) 
 {
+  led_task_schedule();
+  swatch_task_schedule();
 }
 
 
