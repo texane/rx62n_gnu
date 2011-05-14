@@ -5,15 +5,13 @@ PATH := $(PATH):$(HOME)/m32c/install/bin
 
 .PRECIOUS: %.o %.elf
 
-BSPS = \
-	clock.o \
-	$(END_OF_LIST)
-
 ELF = main
 OBJS =				\
 	hwsetup.o		\
+	sched.o			\
 	led_task.o		\
 	swatch_task.o		\
+	radar_task.o		\
 	aversive.o can.o	\
 	lcd.o font_x5x7.o	\
 	interrupt_table.o
@@ -23,16 +21,12 @@ all : $(ELF).elf
 flash : $(ELF).elf
 	rxusb -v $(ELF).elf
 
-%.elf : crt0.o %.o $(OBJS) bsp.a rx62n.ld Makefile
-	rx-elf-gcc $(CFLAGS) -nostartfiles crt0.o $*.o $(OBJS) bsp.a -o $@ -Trx62n.ld
+%.elf : crt0.o %.o $(OBJS) rx62n.ld Makefile
+	rx-elf-gcc $(CFLAGS) -nostartfiles crt0.o $*.o $(OBJS) -o $@ -Trx62n.ld
 
 os-0.elf : os-0.S Makefile rx62n.ld
 	rx-elf-as -mlittle-endian-data os-0.S -o os-0.o
 	rx-elf-ld -EL os-0.o -o os-0.elf -Trx62n.ld
-
-bsp.a : $(BSPS)
-	rm -f bsp.a
-	ar rvs bsp.a $(BSPS)
 
 %.o : %.c
 	rx-elf-gcc $(CFLAGS) -c $< -o $@

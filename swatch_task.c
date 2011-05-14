@@ -3,8 +3,7 @@
 #include "lcd.h"
 
 
-static uint32_t countdown;
-static uint32_t countstep;
+static volatile uint32_t countdown __attribute__((aligned));
 
 
 void swatch_task_initialize(void)
@@ -22,4 +21,9 @@ void swatch_task_schedule(void)
   }
 
   --countdown;
+}
+
+unsigned int swatch_get_elapsed_msecs(void)
+{
+  return CONFIG_SWATCH_MSECS - countdown;
 }
