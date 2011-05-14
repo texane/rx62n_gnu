@@ -11,7 +11,7 @@
 
 const uint8_t * const Fontx5x7_table[256];
 
-void lcd_open();
+void lcd_open(void);
 void lcd_set_x(uint8_t xx);
 void lcd_set_y_page(uint8_t yy);
 void lcd_command(int8_t command);

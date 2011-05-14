@@ -8,7 +8,7 @@
 #define LCD_CHIP_SELECT_SET      PORTC.DR.BIT.B2 = 0
 #define LCD_CHIP_SELECT_CLR      PORTC.DR.BIT.B2 = 1
 
-void lcd_open()
+void lcd_open(void)
 {
     int i = 0 ;
     

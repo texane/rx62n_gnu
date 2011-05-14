@@ -1,5 +1,5 @@
 
-CFLAGS = -Wall -O2 -MMD -mint-register=4 -mlittle-endian-data -Iinclude
+CFLAGS = -Wall -O2 -MMD -Wno-strict-aliasing -mint-register=4 -mlittle-endian-data -Iinclude
 
 PATH := $(PATH):$(HOME)/m32c/install/bin
 
@@ -10,7 +10,7 @@ BSPS = \
 	$(END_OF_LIST)
 
 ELF = main
-OBJS = lcd.o font_x5x7.o interrupt_table.o
+OBJS = aversive.o can.o hwsetup.o lcd.o font_x5x7.o interrupt_table.o
 
 all : $(ELF).elf
 
