@@ -10,6 +10,7 @@ OBJS =				\
 	../src/main.o		\
 	../src/hwsetup.o	\
 	../src/sched.o		\
+	../src/switches.o	\
 	../src/blinker.o	\
 	../src/swatch.o		\
 	../src/radar.o		\

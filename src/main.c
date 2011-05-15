@@ -5,6 +5,7 @@
 #include "sched.h"
 #include "aversive.h"
 #include "hwsetup.h"
+#include "switches.h"
 #include "swatch.h"
 #include "blinker.h"
 #include "radar.h"
@@ -207,6 +208,7 @@ static int initialize(void)
   lcd_string(2, 0, "aversived ");
 
   /* initialize the tasks */
+  switches_initialize();
   blinker_initialize();
   swatch_initialize();
   radar_initialize();
@@ -247,6 +249,7 @@ int main(void)
 
 void tick_isr(void) 
 {
+  switches_schedule();
   blinker_schedule();
   swatch_schedule();
   radar_schedule();
