@@ -6,12 +6,12 @@
 static volatile uint32_t countdown __attribute__((aligned));
 
 
-void swatch_task_initialize(void)
+void swatch_initialize(void)
 {
   countdown = (CONFIG_SWATCH_MSECS * CONFIG_TIMER_FREQ) / 1000;
 }
 
-void swatch_task_schedule(void)
+void swatch_schedule(void)
 {
   if (countdown == 0)
   {

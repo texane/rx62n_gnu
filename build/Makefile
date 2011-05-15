@@ -11,7 +11,7 @@ OBJS =				\
 	../src/hwsetup.o	\
 	../src/sched.o		\
 	../src/led_task.o	\
-	../src/swatch_task.o	\
+	../src/swatch.o		\
 	../src/radar_task.o	\
 	../src/aversive.o	\
 	../src/can.o		\
