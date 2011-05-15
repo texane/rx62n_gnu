@@ -8,6 +8,7 @@
 #include "debug.h"
 #include "lcd.h"
 #include "aversive.h"
+#include "config.h"
 
 
 #if CONFIG_USE_CAN
@@ -433,6 +434,8 @@ int aversive_open(aversive_dev_t* dev)
 
 #endif
 
+#if (CONFIG_DO_KEYVAL == 0)
+
   /* send the following to initialize aversive
    */
 
@@ -445,6 +448,8 @@ int aversive_open(aversive_dev_t* dev)
   aversive_set_asserv(dev, 1);
   aversive_set_blocking_params(dev, 5, 300, 8000);
   aversive_set_blocking_params2(dev, 150, 150);
+
+#endif /* CONFIG_DO_KEYVAL == 0 */
 
   return 0;
 }

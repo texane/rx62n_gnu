@@ -28,7 +28,87 @@ extern uint32_t can0_rx_remote_frame_flag;
 aversive_dev_t aversive_device;
 
 
-/* demo program */
+/* test programs */
+
+#if CONFIG_DO_KEYVAL
+
+static inline char nibble_to_ascii(uint8_t value)
+{
+  if (value >= 0xa) return 'a' + value - 0xa;
+  return '0' + value;
+}
+
+static const char* uint16_to_string(uint16_t value)
+{
+  static char buf[8];
+  unsigned int i;
+
+  for (i = 0; i < 4; ++i, value >>= 4)
+    buf[4 - i - 1] = nibble_to_ascii(value & 0xf);
+  buf[i] = 0;
+
+  return buf;
+}
+
+static void do_test(aversive_dev_t* dev)
+{
+#define MAX_KEYS 0x10
+  uint16_t expected_vals[MAX_KEYS];
+
+  uint16_t key, val;
+
+  for (key = 0; key < MAX_KEYS; ++key)
+  {
+    if (aversive_write_keyval(dev, key, key) == -1)
+    {
+      lcd_string(3, 0, "[!] 0");
+      return ;
+    }
+
+    expected_vals[key] = key;
+  }
+
+  while (1)
+  {
+    aversive_poll_bus(dev);
+
+    for (key = 0; key < MAX_KEYS; ++key)
+    {
+      if (aversive_read_keyval(dev, key, &val) == -1)
+      {
+	lcd_string(3, 0, "[!] R");
+	return ;
+      }
+
+      if (expected_vals[key] != val)
+      {
+	lcd_string(3, 0, "[!] R");
+	return ;
+      }
+
+      if (aversive_write_keyval(dev, key, val + 1) == -1)
+      {
+	lcd_string(3, 0, "[!] W");
+	return ;
+      }
+
+      expected_vals[key] = (val + 1) & 0xffff;
+
+      /* report frame rate once every 0x20 wrapping */
+      if ((key == 0) && ((val & 0x1f) == 0))
+      {
+	lcd_string(3, 10, uint16_to_string(val));
+      }
+
+    }
+  }
+}
+
+#endif /* CONFIG_DO_KEYVAL */
+
+
+#if CONFIG_DO_SQUARE
+
 static void wait_abit(void)
 {
   volatile unsigned int i;
@@ -97,14 +177,14 @@ static void do_test(aversive_dev_t* dev)
 {
   lcd_string(2, 0, "do_test   ");
 
-#if (CONFIG_DISABLE_AVERSIVE == 0)
   while (1)
   {
     wait_abit();
     do_square(dev);
   }
-#endif
 }
+
+#endif /* CONFIG_DO_SQUARE */
 
 
 /* global initialization routines */
@@ -118,13 +198,11 @@ static int initialize(void)
   lcd_open();
   lcd_string(2, 0, "initialize");
 
-#if (CONFIG_DISABLE_AVERSIVE == 0)
   if (aversive_open(&aversive_device) == -1)
   {
     lcd_string(3, 0, "[!] aversive_open");
     return -1;
   }
-#endif
 
   lcd_string(2, 0, "aversived ");
 
