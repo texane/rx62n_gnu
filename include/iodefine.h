@@ -5035,9 +5035,15 @@ struct st_can {
         union {
             unsigned short WORD;
             struct {
+#if 0 /* fix invalid memory access */
                 unsigned char DLC:4;
                 unsigned char :4;
                 unsigned char :8;
+#else
+                unsigned short DLC:4;
+                unsigned short :4;
+                unsigned short :8;
+#endif
             } BIT;
         } DLC;
         unsigned char DATA[8];
