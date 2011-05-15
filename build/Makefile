@@ -10,7 +10,7 @@ OBJS =				\
 	../src/main.o		\
 	../src/hwsetup.o	\
 	../src/sched.o		\
-	../src/led_task.o	\
+	../src/blinker.o	\
 	../src/swatch.o		\
 	../src/radar_task.o	\
 	../src/aversive.o	\
