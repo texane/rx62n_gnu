@@ -1,8 +1,7 @@
+#ifndef SCHED_H_INCLUDED
+# define SCHED_H_INCLUDED
 
-#ifndef CLOCK_H
-#define CLOCK_H
+void tick_isr(void) __attribute__((interrupt));
+void  sched_initialize(void);
 
-void tick_isr(void) __attribute__ ((interrupt));
-void  tick_start (void);
-
-#endif
+#endif /* SCHED_H_INCLUDED */

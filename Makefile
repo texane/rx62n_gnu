@@ -1,7 +1,7 @@
 
 CFLAGS = -Wall -O2 -MMD -Wno-strict-aliasing -mint-register=4 -mlittle-endian-data -Iinclude
 
-PATH := $(PATH):$(HOME)/m32c/install/bin
+PATH := $(PATH):/opt/gnurx/bin/:$(HOME)/install/bin
 
 .PRECIOUS: %.o %.elf
 

@@ -1,11 +1,13 @@
 #include "iodefine.h"
 #include "yrdkrx62ndef.h"
 #include "lcd.h"
-#include "clock.h"
+#include "config.h"
+#include "sched.h"
 #include "aversive.h"
 #include "hwsetup.h"
 #include "swatch_task.h"
 #include "led_task.h"
+#include "radar_task.h"
 
 
 /* can globals */
@@ -30,7 +32,7 @@ aversive_dev_t aversive_device;
 static void wait_abit(void)
 {
   volatile unsigned int i;
-  for (i = 0; i < 2000; ++i) asm("wait");
+  for (i = 0; i < 2000; ++i) asm("nop");
 }
 
 static int wait_done(aversive_dev_t* dev)
@@ -95,14 +97,13 @@ static void do_test(aversive_dev_t* dev)
 {
   lcd_string(2, 0, "do_test   ");
 
-#if 0 /* disable aversive */
+#if (CONFIG_DISABLE_AVERSIVE == 0)
   while (1)
   {
     wait_abit();
     do_square(dev);
   }
 #endif
-
 }
 
 
@@ -117,19 +118,27 @@ static int initialize(void)
   lcd_open();
   lcd_string(2, 0, "initialize");
 
-#if 0 /* disable_aversive */
-
+#if (CONFIG_DISABLE_AVERSIVE == 0)
   if (aversive_open(&aversive_device) == -1)
+  {
+    lcd_string(3, 0, "[!] aversive_open");
     return -1;
-
+  }
 #endif
+
+  lcd_string(2, 0, "aversived ");
 
   /* initialize the tasks */
   led_task_initialize();
   swatch_task_initialize();
+  radar_task_initialize();
 
-  /* start the scheduler */
-  tick_start();
+  lcd_string(2, 0, "tasked    ");
+
+  /* init and start the scheduler */
+  sched_initialize();
+
+  lcd_string(2, 0, "scheduled ");
 
   return 0;
 }
@@ -140,22 +149,27 @@ static void finalize(void)
 }
 
 
-/* called on each timer interrupt */
+/* main */
+
+int main(void)
+{
+  if (initialize() == -1)
+  {
+    while (1) asm("wait");
+  }
+
+  do_test(&aversive_device);
+  finalize();
+
+  return 0;
+}
+
+
+/* dont move interrupt handlers */
 
 void tick_isr(void) 
 {
   led_task_schedule();
   swatch_task_schedule();
-}
-
-
-/* main */
-
-int main(void)
-{
-  initialize();
-  do_test(&aversive_device);
-  finalize();
-
-  return 0;
+  radar_task_schedule();
 }

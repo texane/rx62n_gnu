@@ -66,6 +66,7 @@
 Includes   <System Includes> , "Project Includes"
 ******************************************************************************/
 #include <string.h>
+#include "lcd.h"
 #include "iodefine.h"
 #include "can_config.h"
 #include "can.h"
@@ -134,7 +135,7 @@ uint32_t R_CAN_Create(const uint32_t ch_nr)
 	will time out enabling the CPU to continue. */
 	uint32_t can_tmo_cnt = MAX_CAN_SW_DELAY;   
 
-#define __evenaccess volatile
+#define __evenaccess volatile __attribute__((aligned(4)))
 #define nop() do { asm("nop"); } while (0)
 
 	volatile struct st_can __evenaccess * can_block_p;
@@ -146,9 +147,19 @@ uint32_t R_CAN_Create(const uint32_t ch_nr)
 
 	/* Exit Sleep mode. */
 	api_status |= R_CAN_Control(ch_nr, EXITSLEEP_CANMODE);
+	if (api_status != R_CAN_OK)
+	{
+	  lcd_string(5, 0, "r_can_control(sleep)");
+	  return api_status;
+	}
 	
 	/* Sleep -> RESET mode. */
 	api_status |= R_CAN_Control(ch_nr, RESET_CANMODE);
+	if (api_status != R_CAN_OK)
+	{
+	  lcd_string(5, 0, "r_can_control(reset)");
+	  return api_status;
+	}
 	
 	/*** Setting of CAN0 Control register.***/
 	/* BOM:	Bus Off recovery mode acc. to IEC11898-1 */
@@ -180,6 +191,12 @@ uint32_t R_CAN_Create(const uint32_t ch_nr)
 
 	/* Reset -> HALT mode */
 	api_status |= R_CAN_Control(ch_nr, HALT_CANMODE);
+
+	if (api_status != R_CAN_OK)
+	{
+	  lcd_string(5, 0, "r_can_control(halt)");
+	  return api_status;
+	}
 	
   	/* Configure mailboxes in Halt mode. */
 	for (i = 0; i < 32; i++)
@@ -196,24 +213,56 @@ uint32_t R_CAN_Create(const uint32_t ch_nr)
 	/* Note: EST and BLIF flag go high here when stepping code in debugger. */
 	api_status |= R_CAN_Control(ch_nr, OPERATE_CANMODE);
 
+	if (api_status != R_CAN_OK)
+	{
+	  lcd_string(5, 0, "r_can_control(operate)");
+	  return api_status;
+	}
+
 	/* Time Stamp Counter reset. Set the TSRC bit to 1 in CAN Operation mode. */
 	can_block_p->CTLR.BIT.TSRC = 1;
 	while ((can_block_p->CTLR.BIT.TSRC) && DEC_CHK_CAN_SW_TMR) {;}
 	if (can_tmo_cnt == 0) 
 		api_status |= R_CAN_SW_TSRC_ERR;
+
+	if (api_status != R_CAN_OK)
+	{
+	  lcd_string(5, 0, "SW_TMR");
+	  return api_status;
+	}
 	
 	/* Check for errors so far, report, and clear. */
 	if (can_block_p->STR.BIT.EST)
 		api_status |= R_CAN_SW_RST_ERR;
 
+	if (api_status != R_CAN_OK)
+	{
+	  lcd_string(5, 0, "EST");
+	  return api_status;
+	}
+
 	/* Clear Error Interrupt Factor Judge Register. */
 	if (can_block_p->EIFR.BYTE)
 		api_status |= R_CAN_SW_RST_ERR;
+
+	if (api_status != R_CAN_OK)
+	{
+	  lcd_string(5, 0, "EIFR.BYTE");
+	  return api_status;
+	}
+
 	can_block_p->EIFR.BYTE = 0x00;
 
 	/* Clear Error Code Store Register. */
 	if (can_block_p->ECSR.BYTE)
 		api_status |= R_CAN_SW_RST_ERR;
+
+	if (api_status != R_CAN_OK)
+	{
+	  lcd_string(5, 0, "ECSR.BYTE");
+	  return api_status;
+	}
+
 	can_block_p->ECSR.BYTE = 0x00;
 
 	return api_status;
@@ -416,12 +465,12 @@ uint32_t R_CAN_Control(const uint32_t ch_nr, const uint32_t action_type)
 	break;
 
 	case RESET_CANMODE:
-		/* Set to, and ensure that RCAN is in, the Reset state. */
-	    can_block_p->CTLR.BIT.CANM = CAN_RESET;
-		while ((!can_block_p->STR.BIT.RSTST) && DEC_CHK_CAN_SW_TMR)
-		{;}
-	    if (can_tmo_cnt == 0)
-			api_status = R_CAN_SW_RST_ERR;
+	  /* Set to, and ensure that RCAN is in, the Reset state. */
+	  can_block_p->CTLR.BIT.CANM = CAN_RESET;
+	  while ((!can_block_p->STR.BIT.RSTST) && DEC_CHK_CAN_SW_TMR)
+	    nop();
+	  if (can_tmo_cnt == 0)
+	    api_status = R_CAN_SW_RST_ERR;
 	break;
 
 	case HALT_CANMODE:

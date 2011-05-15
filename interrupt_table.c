@@ -1,4 +1,4 @@
-#include "clock.h"
+#include "sched.h"
 
 typedef void (*isr) (void);
 

@@ -5142,6 +5142,7 @@ struct st_can {
             unsigned char L;
         } BYTE;
         struct {
+#if 0 /* fix invalid memory access */
             unsigned char MBM:1;
             unsigned char IDFM:2;
             unsigned char MLM:1;
@@ -5153,6 +5154,19 @@ struct st_can {
             unsigned char BOM:2;
             unsigned char RBOC:1;
             unsigned char :2;
+#else
+            unsigned short MBM:1;
+            unsigned short IDFM:2;
+            unsigned short MLM:1;
+            unsigned short TPM:1;
+            unsigned short TSRC:1;
+            unsigned short TSPS:2;
+            unsigned short CANM:2;
+            unsigned short SLPM:1;
+            unsigned short BOM:2;
+            unsigned short RBOC:1;
+            unsigned short :2;
+#endif
         } BIT;
     } CTLR;
     union {
@@ -5162,6 +5176,7 @@ struct st_can {
             unsigned char L;
         } BYTE;
         struct {
+#if 0 /* fix invalid memory access */
             unsigned char NDST:1;
             unsigned char SDST:1;
             unsigned char RFST:1;
@@ -5178,6 +5193,24 @@ struct st_can {
             unsigned char TRMST:1;
             unsigned char RECST:1;
             unsigned char :1;
+#else
+            unsigned short NDST:1;
+            unsigned short SDST:1;
+            unsigned short RFST:1;
+            unsigned short TFST:1;
+            unsigned short NMLST:1;
+            unsigned short FMLST:1;
+            unsigned short TABST:1;
+            unsigned short EST:1;
+            unsigned short RSTST:1;
+            unsigned short HLTST:1;
+            unsigned short SLPST:1;
+            unsigned short EPST:1;
+            unsigned short BOST:1;
+            unsigned short TRMST:1;
+            unsigned short RECST:1;
+            unsigned short :1;
+#endif
         } BIT;
     } STR;
     union {

@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include "iodefine.h"
 #include "debug.h"
+#include "lcd.h"
 #include "aversive.h"
 
 
@@ -329,7 +330,10 @@ static int setup_can_hardware(aversive_dev_t* dev)
 
   /* Configure mailboxes in Halt mode. */
   if (R_CAN_Control(0, HALT_CANMODE) != R_CAN_OK)
+  {
+    lcd_string(4, 0, "r_can_control");
     return -1;
+  }
 
   /* reset bus states */
   error_bus_status = 0;
@@ -345,10 +349,16 @@ static int setup_can_hardware(aversive_dev_t* dev)
 
   /* setup receiving mailboxes */
   if (R_CAN_RxSet(0, CANBOX_RX, 0, DATA_FRAME) != R_CAN_OK)
+  {
+    lcd_string(4, 0, "r_can_rxset_data");
     return -1;
+  }
 
   if (R_CAN_RxSet(0, CANBOX_REMOTE_RX, 0, REMOTE_FRAME) != R_CAN_OK)
+  {
+    lcd_string(4, 0, "r_can_rxset_remote");
     return -1;
+  }
 
   /* receivall mailboxes (mask == 0), ie.:
      if ((frame->sid & mbox->mask) == mbox.id) mbox.data = frame.data
@@ -359,7 +369,10 @@ static int setup_can_hardware(aversive_dev_t* dev)
 		
   /* switch to operate mode. */
   if (R_CAN_Control(0, OPERATE_CANMODE) != R_CAN_OK)
+  {
+    lcd_string(4, 0, "r_can_control");
     return -1;
+  }
 
   return 0;
 }
@@ -386,13 +399,21 @@ int aversive_open(aversive_dev_t* dev)
    */
 
   if (R_CAN_Create(0) != R_CAN_OK)
+  {
+    lcd_string(4, 0, "r_can_create");
     return -1;
+  }
 
   if (R_CAN_PortSet(0, ENABLE) != R_CAN_OK)
+  {
+    lcd_string(4, 0, "r_can_portset");
     return -1;
+  }
 
   if (setup_can_hardware(dev) == -1)
+  {
     return -1;
+  }
 
   /* assign internal fields
    */
@@ -412,8 +433,6 @@ int aversive_open(aversive_dev_t* dev)
 
 #endif
 
-#if 1 /* UNUSED, debugging mode */
-
   /* send the following to initialize aversive
    */
 
@@ -426,8 +445,6 @@ int aversive_open(aversive_dev_t* dev)
   aversive_set_asserv(dev, 1);
   aversive_set_blocking_params(dev, 5, 300, 8000);
   aversive_set_blocking_params2(dev, 150, 150);
-
-#endif
 
   return 0;
 }
