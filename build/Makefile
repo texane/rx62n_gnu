@@ -12,7 +12,7 @@ OBJS =				\
 	../src/sched.o		\
 	../src/blinker.o	\
 	../src/swatch.o		\
-	../src/radar_task.o	\
+	../src/radar.o		\
 	../src/aversive.o	\
 	../src/can.o		\
 	../src/lcd.o		\

@@ -7,7 +7,7 @@
 #include "hwsetup.h"
 #include "swatch.h"
 #include "blinker.h"
-#include "radar_task.h"
+#include "radar.h"
 
 
 /* can globals */
@@ -209,7 +209,7 @@ static int initialize(void)
   /* initialize the tasks */
   blinker_initialize();
   swatch_initialize();
-  radar_task_initialize();
+  radar_initialize();
 
   lcd_string(2, 0, "tasked    ");
 
@@ -249,5 +249,5 @@ void tick_isr(void)
 {
   blinker_schedule();
   swatch_schedule();
-  radar_task_schedule();
+  radar_schedule();
 }
