@@ -1,15 +1,23 @@
+#include "config.h"
+
+#include <stdint.h>
 #include "iodefine.h"
 #include "yrdkrx62ndef.h"
 #include "lcd.h"
-#include "config.h"
 #include "sched.h"
-#include "aversive.h"
 #include "hwsetup.h"
 #include "switches.h"
 #include "swatch.h"
 #include "blinker.h"
 #include "radar.h"
+#include "adc.h"
 
+#if CONFIG_ENABLE_AVERSIVE
+
+# include "aversive.h"
+
+/* global aversive device context */
+static aversive_dev_t aversive_device;
 
 /* can globals */
 extern can_std_frame_t tx_dataframe;
@@ -24,9 +32,7 @@ extern uint32_t can0_rx_test_newdata_flag;
 extern uint32_t can0_rx_remote_frame_flag;
 #endif /* !USE_CAN_POLL */
 
-
-/* global aversive device context */
-aversive_dev_t aversive_device;
+#endif /* CONFIG_ENABLE_AVERSIVE */
 
 
 /* test programs */
@@ -51,8 +57,10 @@ static const char* uint16_to_string(uint16_t value)
   return buf;
 }
 
-static void do_test(aversive_dev_t* dev)
+static void do_test(void)
 {
+  aversive_dev_t* const dev = &aversive_device;
+
 #define MAX_KEYS 0x10
   uint16_t expected_vals[MAX_KEYS];
 
@@ -105,10 +113,8 @@ static void do_test(aversive_dev_t* dev)
   }
 }
 
-#endif /* CONFIG_DO_KEYVAL */
 
-
-#if CONFIG_DO_SQUARE
+#elif CONFIG_DO_SQUARE
 
 static void wait_abit(void)
 {
@@ -165,24 +171,32 @@ static int do_square(aversive_dev_t* dev)
 {
   unsigned int i;
 
-  for (i = 0; i < 4; ++i) 
+/*   for (i = 0; i < 4; ++i)  */
+  for (i = 0; i < 2; ++i) 
   {
-    if (do_move(dev, 500) == -1) return -1;
-    if (do_turn(dev, 90) == -1) return -1;
+    if (do_move(dev, 1000) == -1) return -1;
+    if (do_turn(dev, 185) == -1) return -1;
   }
 
   return 0;
 }
 
-static void do_test(aversive_dev_t* dev)
+static void do_test(void)
 {
   lcd_string(2, 0, "do_test   ");
 
   while (1)
   {
     wait_abit();
-    do_square(dev);
+    do_square(&aversive_device);
   }
+}
+
+#else
+
+static void do_test(void)
+{
+  while (1) asm("wait\n");
 }
 
 #endif /* CONFIG_DO_SQUARE */
@@ -199,13 +213,19 @@ static int initialize(void)
   lcd_open();
   lcd_string(2, 0, "initialize");
 
+#if CONFIG_ENABLE_AVERSIVE
   if (aversive_open(&aversive_device) == -1)
   {
     lcd_string(3, 0, "[!] aversive_open");
     return -1;
   }
-
   lcd_string(2, 0, "aversived ");
+#endif /* CONFIG_ENABLE_AVERSIVE */
+
+#if CONFIG_ENABLE_ADC
+  adc_initialize();
+  lcd_string(2, 0, "adced     ");
+#endif
 
   /* initialize the tasks */
   switches_initialize();
@@ -225,7 +245,9 @@ static int initialize(void)
 
 static void finalize(void)
 {
+#if CONFIG_ENABLE_AVERSIVE
   aversive_close(&aversive_device);
+#endif
 }
 
 
@@ -238,7 +260,8 @@ int main(void)
     while (1) asm("wait");
   }
 
-  do_test(&aversive_device);
+  do_test();
+
   finalize();
 
   return 0;
@@ -253,4 +276,5 @@ void tick_isr(void)
   blinker_schedule();
   swatch_schedule();
   radar_schedule();
+  adc_schedule();
 }

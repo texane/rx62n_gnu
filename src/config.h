@@ -11,7 +11,10 @@
 #define CONFIG_SWATCH_MSECS 5000 /* match duration */
 
 #define CONFIG_DO_SQUARE 0
-#define CONFIG_DO_KEYVAL 1
+#define CONFIG_DO_KEYVAL 0
+
+#define CONFIG_ENABLE_AVERSIVE 0
+#define CONFIG_ENABLE_ADC 1
 
 
 #endif /* CONFIG_H_INCLUDED  */

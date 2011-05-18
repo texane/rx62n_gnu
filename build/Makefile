@@ -14,6 +14,7 @@ OBJS =				\
 	../src/blinker.o	\
 	../src/swatch.o		\
 	../src/radar.o		\
+	../src/adc.o		\
 	../src/aversive.o	\
 	../src/can.o		\
 	../src/lcd.o		\
