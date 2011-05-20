@@ -1,10 +1,21 @@
+#include <stdint.h>
+
+
 void radar_initialize(void)
 {
-  /* TODO */
 }
 
 
 void radar_schedule(void)
 {
-  /* TODO */
+}
+
+
+void radar_enable(void)
+{
+}
+
+
+void radar_disable(void)
+{
 }

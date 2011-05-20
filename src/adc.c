@@ -27,19 +27,25 @@ static void setup_adc(volatile struct st_ad* ad)
 
 void adc_initialize(void)
 {
-  /* an0, an2 input */
-  /* an0, an2 buffer disabled */
+  /* an0, an1 input */
+  /* an0, an1 buffer disabled */
   /* turn on and setup modules */
 
   SYSTEM.MSTPCRB.BIT.MSTPB0 = 0;
 
   PORT4.DDR.BIT.B0 = 0;
-  PORT4.ICR.BIT.B0 = 0;
+  PORT4.DDR.BIT.B1 = 0;
+  PORT4.DDR.BIT.B2 = 0;
+  PORT4.DDR.BIT.B3 = 0;
+
+  PORT4.ICR.BIT.B0 = 1;
+  PORT4.ICR.BIT.B1 = 1;
+  PORT4.ICR.BIT.B2 = 1;
+  PORT4.ICR.BIT.B3 = 1;
+
   MSTP_AD0 = 0;
   setup_adc(get_adc(0));
 
-  PORT4.DDR.BIT.B2 = 0;
-  PORT4.ICR.BIT.B2 = 0;
   MSTP_AD1 = 0;
   setup_adc(get_adc(1));
 }
@@ -127,6 +133,55 @@ static inline void print_uint16
   lcd_string(row, col, uint16_to_string(value));
 }
 
+
+static unsigned int volt_to_mm(uint16_t v)
+{
+  /* return the distance in mm */
+
+  /* from experiments */
+  static const unsigned int pairs[][2] =
+  {
+#define MV_TO_UINT16(__mv) (((__mv) * 0x3ff) / 3300)
+
+    { MV_TO_UINT16(2860), 30 },
+    { MV_TO_UINT16(2770), 40 },
+    { MV_TO_UINT16(2340), 50 },
+    { MV_TO_UINT16(1950), 60 },
+    { MV_TO_UINT16(1680), 70 },
+    { MV_TO_UINT16(1470), 80 },
+    { MV_TO_UINT16(1320), 90 },
+    { MV_TO_UINT16(1170), 100 },
+    { MV_TO_UINT16(980), 120 },
+    { MV_TO_UINT16(810), 140 },
+    { MV_TO_UINT16(710), 160 },
+    { MV_TO_UINT16(600), 180 },
+    { MV_TO_UINT16(520), 200 },
+    { MV_TO_UINT16(460), 220 },
+    { MV_TO_UINT16(410), 250 },
+    { MV_TO_UINT16(310), 300 }
+  };
+
+  static const unsigned int count = sizeof(pairs) / sizeof(pairs[0]);
+  unsigned int pos;
+
+  /* find the voltage */
+
+  for (pos = 1; pos < count; ++pos)
+    if (v > pairs[pos][0]) break ;
+  if (pos == count) return (unsigned int)-1;
+
+#if 0
+  /* interpolate */
+  unsigned int vd, dd;
+  vd = pairs[pos - 1][0] - pairs[pos][0];
+  dd = pairs[pos][1] - pairs[pos - 1][1];
+  return pairs[pos - 1][1] + ((v - pairs[pos - 1][0]) * dd) / vd;
+#else
+  return pairs[pos - 1][1];
+#endif
+} 
+
+
 void adc_schedule(void)
 {
   static uint16_t values[2];
@@ -144,8 +199,13 @@ void adc_schedule(void)
       if (chan == 1)
       {
 	lcd_string(7, 0, "adc ");
+#if 0
+	print_uint16(7, 30, volt_to_mm(values[0]));
+	print_uint16(7, 60, volt_to_mm(values[1]));
+#else
 	print_uint16(7, 30, values[0]);
 	print_uint16(7, 60, values[1]);
+#endif
       }
 
       chan = (chan + 1) & 1;

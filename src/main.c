@@ -119,7 +119,7 @@ static void do_test(void)
 static void wait_abit(void)
 {
   volatile unsigned int i;
-  for (i = 0; i < 2000; ++i) asm("nop");
+  for (i = 0; i < 1000; ++i) asm("nop");
 }
 
 static int wait_done(aversive_dev_t* dev)
@@ -171,11 +171,10 @@ static int do_square(aversive_dev_t* dev)
 {
   unsigned int i;
 
-/*   for (i = 0; i < 4; ++i)  */
-  for (i = 0; i < 2; ++i) 
+  for (i = 0; i < 4; ++i)
   {
     if (do_move(dev, 1000) == -1) return -1;
-    if (do_turn(dev, 185) == -1) return -1;
+    if (do_turn(dev, 90) == -1) return -1;
   }
 
   return 0;
@@ -189,6 +188,133 @@ static void do_test(void)
   {
     wait_abit();
     do_square(&aversive_device);
+  }
+}
+
+#elif CONFIG_DO_PAWN
+
+/* take pawn finite state machine */
+
+typedef struct takepawn_fsm
+{
+  /* current state */
+  enum
+  {
+    INIT = 0,
+    CENTER,
+    MOVE,
+    TAKE,
+    DONE
+  } state;
+
+  /* front left, right sharps */
+  uint16_t fl;
+  uint16_t fr;
+
+  /* angle */
+  int alpha;
+
+} takepawn_fsm_t;
+
+static inline void init_takepawn_fsm(takepawn_fsm_t* fsm)
+{
+  fsm->state = INIT;
+}
+
+static void schedule_takepawn_fsm(takepawn_fsm_t* fsm)
+{
+  switch (fsm->state)
+  {
+  default:
+  case INIT:
+    {
+      break ;
+    }
+
+  case CENTER:
+    {
+      break ;
+    }
+  
+  case MOVE:
+    {
+      break ;
+    }
+
+  case TAKE:
+    {
+      break ;
+    }
+
+  case DONE:
+    {
+      break ;
+    }
+  }
+}
+
+static inline int is_takepawn_fsm_done(takepawn_fsm_t* fsm)
+{
+  return fsm->state == DONE;
+}
+
+static void do_test(void)
+{
+  /* turn until pawn detected */
+
+#define FR_SHARP_INDEX 0
+#define FL_SHARP_INDEX 1
+
+#define MAX_PAWN_DIST 200
+
+  uint16_t fl, fr;
+
+  while (1)
+  {
+    fl = adc_read(FL_SHARP_INDEX);
+    fr = adc_read(FR_SHARP_INDEX);
+
+    if ((fl < MAX_PAWN_DIST) || (fr < MAX_PAWN_DIST))
+      break ;
+  }
+
+  /* found a sharp */
+
+
+
+  unsigned int alpha;
+  uint16_t fl, fr;
+  unsigned int ispawn = 0;
+
+  while (1)
+  {
+    switch (state)
+    {
+    case TURN_LEFT:
+      turn_left(alpha);
+      fr = sharp_read_fl();
+      if (fr > dist)
+      break ;
+
+    case TURN_RIGHT:
+      break ;
+
+    case DEFAULT:
+    default:
+      fl = sharp_read_fl();
+      fr = sharp_read_fr();
+
+      if (fl <= DIST_MAX)
+      {
+	alpha = 10;
+	state = TURN_LEFT;
+      }
+      else if (fr <= DIST_MAX)
+      {
+      }
+
+      break ;
+    }
   }
 }
 
@@ -222,14 +348,19 @@ static int initialize(void)
   lcd_string(2, 0, "aversived ");
 #endif /* CONFIG_ENABLE_AVERSIVE */
 
+  blinker_initialize();
+
 #if CONFIG_ENABLE_ADC
   adc_initialize();
   lcd_string(2, 0, "adced     ");
 #endif
 
   /* initialize the tasks */
+
+#if CONFIG_ENABLE_SWITCHES
   switches_initialize();
-  blinker_initialize();
+#endif
+
   swatch_initialize();
   radar_initialize();
 
@@ -272,9 +403,15 @@ int main(void)
 
 void tick_isr(void) 
 {
+#if CONFIG_ENABLE_SWITCHES
   switches_schedule();
+#endif
+
   blinker_schedule();
   swatch_schedule();
   radar_schedule();
+
+#if CONFIG_ENABLE_ADC
   adc_schedule();
+#endif
 }
