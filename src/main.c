@@ -8,6 +8,10 @@
 #include "hwsetup.h"
 #include "fsm.h"
 
+#if CONFIG_ENABLE_GRIPPER
+# include "gripper.h"
+#endif
+
 #if CONFIG_ENABLE_SWITCHES
 # include "switches.h"
 #endif
@@ -218,7 +222,7 @@ static void do_test(void)
 {
   fsm_t fsm;
 
-  takepawn_fsm_init(&fsm);
+  takepawn_fsm_initialize(&fsm);
 
   while (fsm.is_done(fsm.data) == 0)
   {
@@ -287,6 +291,10 @@ static int initialize(void)
 
 #if CONFIG_ENABLE_RADAR
   radar_initialize();
+#endif
+
+#if CONFIG_ENABLE_GRIPPER
+  gripper_initialize();
 #endif
 
   lcd_string(2, 0, "tasked    ");

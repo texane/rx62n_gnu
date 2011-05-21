@@ -11,6 +11,7 @@ OBJS =				\
 	../src/hwsetup.o	\
 	../src/sched.o		\
 	../src/takepawn_fsm.o	\
+	../src/gripper.o	\
 	../src/switches.o	\
 	../src/blinker.o	\
 	../src/swatch.o		\

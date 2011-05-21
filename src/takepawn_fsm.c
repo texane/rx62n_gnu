@@ -154,7 +154,7 @@ static void takepawn_fsm_restart(void* data)
 
 /* exported */
 
-void takepawn_fsm_init(fsm_t* fsm)
+void takepawn_fsm_initialize(fsm_t* fsm)
 {
   static takepawn_fsm_t data;
 

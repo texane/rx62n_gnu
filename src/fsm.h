@@ -17,7 +17,7 @@ typedef struct fsm
 
 
 /* factory */
-void takepawn_fsm_init(fsm_t*);
+void takepawn_fsm_initialize(fsm_t*);
 
 
 #endif /* ! FSM_H_INCLUDED */
