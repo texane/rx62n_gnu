@@ -76,6 +76,8 @@ static void do_test(void)
 {
   aversive_dev_t* const dev = &aversive_device;
 
+  uint16_t pass = 0;
+
 #define MAX_KEYS 0x10
   uint16_t expected_vals[MAX_KEYS];
 
@@ -118,13 +120,17 @@ static void do_test(void)
 
       expected_vals[key] = (val + 1) & 0xffff;
 
+#if 0
       /* report frame rate once every 0x20 wrapping */
       if ((key == 0) && ((val & 0x1f) == 0))
       {
 	lcd_string(3, 10, uint16_to_string(val));
       }
+#endif
 
     }
+
+    lcd_string(3, 10, uint16_to_string(pass++));
   }
 }
 
@@ -364,6 +370,8 @@ static void do_test(void)
   /* game is over */
 #if CONFIG_ENABLE_AVERSIVE
   aversive_stop(&aversive_device);
+  aversive_set_asserv(&aversive_device, 0);
+  aversive_set_power(&aversive_device, 0);
 #endif
 }
 
