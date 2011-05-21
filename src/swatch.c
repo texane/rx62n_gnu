@@ -27,3 +27,8 @@ unsigned int swatch_get_elapsed_msecs(void)
 {
   return CONFIG_SWATCH_MSECS - countdown;
 }
+
+unsigned int swatch_is_game_over(void)
+{
+  return countdown == 0;
+}

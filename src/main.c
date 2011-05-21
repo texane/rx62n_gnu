@@ -353,8 +353,18 @@ static void do_test(void)
   takepawn_fsm_t fsm;
 
   takepawn_fsm_init(&fsm);
+
   while (takepawn_fsm_isdone(&fsm) == 0)
+  {
+    if (swatch_is_game_over()) break ;
+
     takepawn_fsm_next(&fsm);
+  }
+
+  /* game is over */
+#if CONFIG_ENABLE_AVERSIVE
+  aversive_stop(&aversive_device);
+#endif
 }
 
 #else
