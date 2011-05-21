@@ -98,17 +98,12 @@ void HardwareSetup(void)
     PORTC.DR.BYTE = 0xF7 ;      // Port C: Chip selects, clock = high; IO reset = low
     PORTC.DDR.BYTE = 0x7F ;     // Port C: SPI (PC0-2, PC4-7), IO reset (PC3)
 
-    PORTD.DR.BYTE = 0x00;       // All LED's off
+    PORTD.DR.BYTE = 0xff;       // All LED's off
     PORTD.DDR.BYTE = 0xFF ;     // Port D: LED's
 
-    PORTE.DR.BYTE = 0x00  ;     // All LED's off
+    PORTE.DR.BYTE = 0xff  ;     // All LED's off
     PORTE.DDR.BYTE = 0xFF ;     // Port E: LED's (PE0-PE3), LCD data D0-D3) (PE4-PE7)
 
-	/* Switches; set ICR for P0_0, 1, and 7. */
-	PORT4.ICR.BIT.B0 = 1;
-	PORT4.ICR.BIT.B1 = 1;
-	PORT4.ICR.BIT.B2 = 1;
-	
 	/* For CAN see API. Set default port for CAN so an output high on a 
     CAN pin or low doesn't affect the bus. */
 	R_CAN_PortSet(0, ENABLE);
