@@ -128,7 +128,6 @@ static void do_test(void)
   }
 }
 
-
 #elif CONFIG_DO_SQUARE
 
 static void wait_abit(void)
@@ -305,9 +304,9 @@ static void takepawn_fsm_next(takepawn_fsm_t* fsm)
 	break ;
       }
 
-      /* todo: turn proportionnaly to d */
-      if (fsm->fl > fsm->fr) fsm->alpha = 3;
-      else fsm->alpha = -3;
+      /* todo: angle should be proportional to d */
+      if (fsm->fl > fsm->fr) fsm->alpha = 8;
+      else fsm->alpha = -8;
 
       aversive_turn(&aversive_device, fsm->alpha);
       fsm->prev_state = CENTER;

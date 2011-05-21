@@ -13,8 +13,8 @@ unsigned int sharp_adc10_to_mm(uint16_t);
 
 /* innlined routines */
 
-#define SHARP_ADC_INDEX_FR 0
-#define SHARP_ADC_INDEX_FL 1
+#define SHARP_ADC_INDEX_FL 0
+#define SHARP_ADC_INDEX_FR 1
 
 static inline unsigned int sharp_read(unsigned int index)
 {
