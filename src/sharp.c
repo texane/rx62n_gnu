@@ -1,5 +1,6 @@
 #include "config.h"
 #include "iodefine.h"
+#include "sharp.h"
 #include "adc.h"
 
 
@@ -38,7 +39,7 @@ static inline void print_uint16
 }
 
 
-static unsigned int sharp_to_mm(uint16_t v)
+unsigned int sharp_adc10_to_mm(uint16_t v)
 {
   /* find the voltage <= to v and return the distance, in mm */
 
@@ -81,8 +82,7 @@ static unsigned int sharp_to_mm(uint16_t v)
   vd = pairs[pos - 1][0] - pairs[pos][0];
   dd = pairs[pos][1] - pairs[pos - 1][1];
   return pairs[pos - 1][1] + ((pairs[pos - 1][0] - v) * dd) / vd;
-} 
-
+}
 
 void sharp_schedule(void)
 {
@@ -105,8 +105,8 @@ void sharp_schedule(void)
 	print_uint16(6, 60, values[1]);
 
 	lcd_string(7, 0, "mm  ");
-	print_uint16(7, 30, sharp_to_mm(values[0]));
-	print_uint16(7, 60, sharp_to_mm(values[1]));
+	print_uint16(7, 30, sharp_adc10_to_mm(values[0]));
+	print_uint16(7, 60, sharp_adc10_to_mm(values[1]));
       }
 
       chan = (chan + 1) & 1;

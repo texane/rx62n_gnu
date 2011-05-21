@@ -1,7 +1,7 @@
 #include "config.h"
 #include <stdint.h>
 #if CONFIG_ENABLE_AVERSIVE
-# include "averive.h"
+# include "aversive.h"
 #endif
 
 

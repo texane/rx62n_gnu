@@ -206,7 +206,7 @@ static void do_test(void)
   }
 }
 
-#elif CONFIG_DO_PAWN
+#elif CONFIG_DO_TAKEPAWN
 
 /* take pawn finite state machine */
 
@@ -215,52 +215,133 @@ typedef struct takepawn_fsm
   /* current state */
   enum
   {
-    INIT = 0,
+    SEARCH = 0,
     CENTER,
     MOVE,
     TAKE,
+    WAIT_TRAJ,
     DONE
   } state;
 
+  /* store the previous state */
+  unsigned int prev_state;
+
   /* front left, right sharps */
-  uint16_t fl;
-  uint16_t fr;
+  unsigned int fl;
+  unsigned int fr;
 
   /* angle */
   int alpha;
 
 } takepawn_fsm_t;
 
-static inline void init_takepawn_fsm(takepawn_fsm_t* fsm)
+static inline void takepawn_fsm_init(takepawn_fsm_t* fsm)
 {
-  fsm->state = INIT;
+  fsm->state = SEARCH;
+  fsm->prev_state = SEARCH;
+  fsm->fl = 0;
+  fsm->fr = 0;
+  fsm->alpha = 0;
 }
 
-static void schedule_takepawn_fsm(takepawn_fsm_t* fsm)
+static inline unsigned int takepawn_fsm_isdone(takepawn_fsm_t* fsm)
+{
+  return fsm->state == DONE;
+}
+
+static inline unsigned int min(unsigned int a, unsigned int b)
+{
+  return a < b ? a : b;
+}
+
+static void takepawn_fsm_next(takepawn_fsm_t* fsm)
 {
   switch (fsm->state)
   {
-  default:
-  case INIT:
+  case SEARCH:
     {
+      /* turn looking for the something */
+      fsm->fl = sharp_read_fl();
+      fsm->fr = sharp_read_fr();
+
+#define PAWN_DIST 200
+      if (min(fsm->fl, fsm->fr) < PAWN_DIST)
+      {
+	fsm->state = CENTER;
+	break ;
+      }
+
+      /* continue turning */
+      aversive_turn(&aversive_device, fsm->alpha);
+      fsm->prev_state = SEARCH;
+      fsm->state = WAIT_TRAJ;
+
+      break ;
+    }
+
+  case WAIT_TRAJ:
+    {
+      int isdone;
+      aversive_is_traj_done(&aversive_device, &isdone);
+      if (isdone == 1)
+	fsm->state = fsm->prev_state;
       break ;
     }
 
   case CENTER:
     {
+      unsigned int d;
+
+      /* turn until the 2 read approx the same distance */
+      fsm->fl = sharp_read_fl();
+      fsm->fr = sharp_read_fr();
+
+      if (fsm->fl > fsm->fr) d = fsm->fl - fsm->fr;
+      else d = fsm->fr - fsm->fl;
+
+      if (d < 30)
+      {
+	fsm->state = MOVE;
+	break ;
+      }
+
+      /* todo: turn proportionnaly to d */
+      if (fsm->fl > fsm->fr) fsm->alpha = 3;
+      else fsm->alpha = -3;
+
+      aversive_turn(&aversive_device, fsm->alpha);
+      fsm->prev_state = CENTER;
+      fsm->state = WAIT_TRAJ;
+
       break ;
     }
   
   case MOVE:
     {
+      /* assume centered, move forward if not too near */
+      
+      if (fsm->fl <= 45)
+      {
+	fsm->state = TAKE;
+	break ;
+      }
+
+      aversive_move_forward(&aversive_device, 45);
+
+      /* moving may invalidate center */
+      fsm->prev_state = CENTER;
+      fsm->state = WAIT_TRAJ;
+
       break ;
     }
 
   case TAKE:
     {
+      fsm->state = DONE;
       break ;
     }
 
+  default:
   case DONE:
     {
       break ;
@@ -268,69 +349,13 @@ static void schedule_takepawn_fsm(takepawn_fsm_t* fsm)
   }
 }
 
-static inline int is_takepawn_fsm_done(takepawn_fsm_t* fsm)
-{
-  return fsm->state == DONE;
-}
-
 static void do_test(void)
 {
-  /* turn until pawn detected */
+  takepawn_fsm_t fsm;
 
-#define FR_SHARP_INDEX 0
-#define FL_SHARP_INDEX 1
-
-#define MAX_PAWN_DIST 200
-
-  uint16_t fl, fr;
-
-  while (1)
-  {
-    fl = adc_read(FL_SHARP_INDEX);
-    fr = adc_read(FR_SHARP_INDEX);
-
-    if ((fl < MAX_PAWN_DIST) || (fr < MAX_PAWN_DIST))
-      break ;
-  }
-
-  /* found a sharp */
-
-
-
-  unsigned int alpha;
-  uint16_t fl, fr;
-  unsigned int ispawn = 0;
-
-  while (1)
-  {
-    switch (state)
-    {
-    case TURN_LEFT:
-      turn_left(alpha);
-      fr = sharp_read_fl();
-      if (fr > dist)
-      break ;
-
-    case TURN_RIGHT:
-      break ;
-
-    case DEFAULT:
-    default:
-      fl = sharp_read_fl();
-      fr = sharp_read_fr();
-
-      if (fl <= DIST_MAX)
-      {
-	alpha = 10;
-	state = TURN_LEFT;
-      }
-      else if (fr <= DIST_MAX)
-      {
-      }
-
-      break ;
-    }
-  }
+  takepawn_fsm_init(&fsm);
+  while (takepawn_fsm_isdone(&fsm) == 0)
+    takepawn_fsm_next(&fsm);
 }
 
 #else
