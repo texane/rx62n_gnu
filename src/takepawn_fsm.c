@@ -1,6 +1,7 @@
 #include "fsm.h"
 #include "sharp.h"
 #include "aversive.h"
+#include "gripper.h"
 
 
 /* extern variables */
@@ -18,8 +19,11 @@ typedef struct takepawn_fsm
     SEARCH = 0,
     CENTER,
     MOVE,
-    TAKE,
+    SWITCH,
+    GRIP,
     WAIT_TRAJ,
+    WAIT_TRAJ_OR_SWITCH,
+    WAIT_GRIP,
     DONE
   } state;
 
@@ -74,15 +78,6 @@ static void takepawn_fsm_next(void* data)
       break ;
     }
 
-  case WAIT_TRAJ:
-    {
-      int isdone;
-      aversive_is_traj_done(&aversive_device, &isdone);
-      if (isdone == 1)
-	fsm->state = fsm->prev_state;
-      break ;
-    }
-
   case CENTER:
     {
       unsigned int d;
@@ -117,7 +112,7 @@ static void takepawn_fsm_next(void* data)
       
       if (fsm->fl <= 45)
       {
-	fsm->state = TAKE;
+	fsm->state = SWITCH;
 	break ;
       }
 
@@ -130,9 +125,57 @@ static void takepawn_fsm_next(void* data)
       break ;
     }
 
-  case TAKE:
+  case SWITCH:
     {
-      fsm->state = DONE;
+      /* move until the grip switch pressed or distance reached */
+      aversive_move_forward(&aversive_device, 10 + (fsm->fl + fsm->fr) / 2);
+      fsm->state = WAIT_TRAJ_OR_SWITCH;
+      break ;
+    }
+
+  case GRIP:
+    {
+      gripper_close();
+      fsm->state = WAIT_GRIP;
+      break ;
+    }
+
+  case WAIT_TRAJ:
+    {
+      int isdone;
+      aversive_is_traj_done(&aversive_device, &isdone);
+      if (isdone == 1)
+	fsm->state = fsm->prev_state;
+      break ;
+    }
+
+  case WAIT_TRAJ_OR_SWITCH:
+    {
+      unsigned int is_pushed;
+      int is_done;
+
+      gripper_get_switch(&is_pushed);
+      aversive_is_traj_done(&aversive_device, &is_done);
+
+      if (is_pushed)
+      {
+	/* stop aversive trajectory */
+	aversive_stop(&aversive_device);
+	fsm->state = GRIP;
+      }
+      else if (is_done)
+      {
+	fsm->state = DONE;
+      }
+
+      break ;
+    }
+
+  case WAIT_GRIP:
+    {
+      unsigned int is_done;
+      gripper_is_done(&is_done);
+      if (is_done) fsm->state = DONE;
       break ;
     }
 
