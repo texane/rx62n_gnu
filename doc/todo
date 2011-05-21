@@ -1,0 +1,2 @@
+[!] poller le bus can regulierement avant le scheduling des automate
+ -> aversive_poll_bus()
