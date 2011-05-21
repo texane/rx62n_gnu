@@ -15,6 +15,7 @@ OBJS =				\
 	../src/swatch.o		\
 	../src/radar.o		\
 	../src/adc.o		\
+	../src/sharp.o		\
 	../src/aversive.o	\
 	../src/can.o		\
 	../src/lcd.o		\

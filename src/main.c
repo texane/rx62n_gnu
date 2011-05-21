@@ -6,11 +6,26 @@
 #include "lcd.h"
 #include "sched.h"
 #include "hwsetup.h"
-#include "switches.h"
-#include "swatch.h"
-#include "blinker.h"
-#include "radar.h"
-#include "adc.h"
+
+#if CONFIG_ENABLE_SWITCHES
+# include "switches.h"
+#endif
+
+#if CONFIG_ENABLE_SWATCH
+# include "swatch.h"
+#endif
+
+#if CONFIG_ENABLE_BLINKER
+# include "blinker.h"
+#endif
+
+#if CONFIG_ENABLE_RADAR
+# include "radar.h"
+#endif
+
+#if CONFIG_ENABLE_SHARP
+# include "sharp.h"
+#endif
 
 #if CONFIG_ENABLE_AVERSIVE
 
@@ -352,8 +367,8 @@ static int initialize(void)
   blinker_initialize();
 #endif
 
-#if CONFIG_ENABLE_ADC
-  adc_initialize();
+#if CONFIG_ENABLE_SHARP
+  sharp_initialize_all();
 #endif
 
 #if CONFIG_ENABLE_SWITCHES
@@ -423,7 +438,7 @@ void tick_isr(void)
   radar_schedule();
 #endif
 
-#if CONFIG_ENABLE_ADC
-  adc_schedule();
+#if CONFIG_ENABLE_SHARP
+  sharp_schedule();
 #endif
 }
