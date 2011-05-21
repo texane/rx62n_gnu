@@ -348,21 +348,25 @@ static int initialize(void)
   lcd_string(2, 0, "aversived ");
 #endif /* CONFIG_ENABLE_AVERSIVE */
 
+#if CONFIG_ENABLE_BLINKER
   blinker_initialize();
+#endif
 
 #if CONFIG_ENABLE_ADC
   adc_initialize();
-  lcd_string(2, 0, "adced     ");
 #endif
-
-  /* initialize the tasks */
 
 #if CONFIG_ENABLE_SWITCHES
   switches_initialize();
 #endif
 
+#if CONFIG_ENABLE_SWATCH
   swatch_initialize();
+#endif
+
+#if CONFIG_ENABLE_RADAR
   radar_initialize();
+#endif
 
   lcd_string(2, 0, "tasked    ");
 
@@ -407,9 +411,17 @@ void tick_isr(void)
   switches_schedule();
 #endif
 
+#if CONFIG_ENABLE_BLINKER
   blinker_schedule();
+#endif
+
+#if CONFIG_ENABLE_SWATCH
   swatch_schedule();
+#endif
+
+#if CONFIG_ENABLE_RADAR
   radar_schedule();
+#endif
 
 #if CONFIG_ENABLE_ADC
   adc_schedule();

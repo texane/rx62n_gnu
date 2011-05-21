@@ -134,11 +134,11 @@ static inline void print_uint16
 }
 
 
-static unsigned int volt_to_mm(uint16_t v)
+static unsigned int sharp_to_mm(uint16_t v)
 {
-  /* return the distance in mm */
+  /* find the voltage <= to v and return the distance, in mm */
 
-  /* from experiments */
+  /* from experiments. TODO: binary search */
   static const unsigned int pairs[][2] =
   {
 #define MV_TO_UINT16(__mv) (((__mv) * 0x3ff) / 3300)
@@ -165,20 +165,18 @@ static unsigned int volt_to_mm(uint16_t v)
   unsigned int pos;
 
   /* find the voltage */
-
-  for (pos = 1; pos < count; ++pos)
+  for (pos = 0; pos < count; ++pos)
     if (v > pairs[pos][0]) break ;
+
+  /* pairs[pos - 1][0] < v < pairs[pos][0] */
+  if (pos == 0) return 30;
   if (pos == count) return (unsigned int)-1;
 
-#if 0
   /* interpolate */
   unsigned int vd, dd;
   vd = pairs[pos - 1][0] - pairs[pos][0];
   dd = pairs[pos][1] - pairs[pos - 1][1];
-  return pairs[pos - 1][1] + ((v - pairs[pos - 1][0]) * dd) / vd;
-#else
-  return pairs[pos - 1][1];
-#endif
+  return pairs[pos - 1][1] + ((pairs[pos - 1][0] - v) * dd) / vd;
 } 
 
 
@@ -198,14 +196,13 @@ void adc_schedule(void)
     {
       if (chan == 1)
       {
-	lcd_string(7, 0, "adc ");
-#if 0
-	print_uint16(7, 30, volt_to_mm(values[0]));
-	print_uint16(7, 60, volt_to_mm(values[1]));
-#else
-	print_uint16(7, 30, values[0]);
-	print_uint16(7, 60, values[1]);
-#endif
+	lcd_string(6, 0, "adc ");
+	print_uint16(6, 30, values[0]);
+	print_uint16(6, 60, values[1]);
+
+	lcd_string(7, 0, "mm  ");
+	print_uint16(7, 30, sharp_to_mm(values[0]));
+	print_uint16(7, 60, sharp_to_mm(values[1]));
       }
 
       chan = (chan + 1) & 1;
