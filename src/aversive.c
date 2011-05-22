@@ -87,13 +87,12 @@ static int send_frame(aversive_dev_t* dev)
 
 #ifdef USE_CAN_POLL
 
-#if 0 /* TODO */
+#if 1 /* NEEDED */
 
   /* the documentation suggests calling this function can be
      omitted since we can reasonably assume the message has
-     been sent on TxSet success. During the test, this function
-     never returns R_CAN_OK, making us block. Thus we do not
-     call it at all for now.
+     been sent on TxSet success. BUT not checking it, we
+     possibly destroy the frame contents before it gets sent
    */
 
   while (R_CAN_TxCheck(0, CANBOX_TX))
