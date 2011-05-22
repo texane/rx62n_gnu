@@ -281,12 +281,20 @@ static void do_test(void)
   unsigned int values[8];
   unsigned int msecs[2];
 
+  msecs[1] = swatch_get_elapsed_msecs();
+
   while (1)
   {
-    /* wait for at least 500 ms */
+    aversive_poll_bus(&aversive_device);
+
+    lcd_string(0, 0, "barfu");
+
+    /* wait for at least 1 second */
     msecs[0] = swatch_get_elapsed_msecs();
     if ((msecs[0] - msecs[1]) < 500) continue ;
     msecs[1] = msecs[0];
+
+    lcd_string(0, 0, "fubar");
 
     /* update leds */
     igreboard_set_led(0, led);
@@ -294,6 +302,8 @@ static void do_test(void)
     led ^= 1;
     igreboard_set_led(1, led);
     igreboard_set_led(3, led);
+
+#if 0
 
     /* read and display adcs */
     row = 3;
@@ -309,6 +319,9 @@ static void do_test(void)
       igreboard_read_adc(i, &values[i]);
       print_uint16(row, col, (uint16_t)values[i]);
     }
+
+#endif
+
   }
 }
 

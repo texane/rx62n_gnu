@@ -25,7 +25,7 @@ void swatch_schedule(void)
 
 unsigned int swatch_get_elapsed_msecs(void)
 {
-  return CONFIG_SWATCH_MSECS - countdown;
+  return ((CONFIG_SWATCH_MSECS - countdown) * 1000) / CONFIG_TIMER_FREQ;
 }
 
 unsigned int swatch_is_game_over(void)
