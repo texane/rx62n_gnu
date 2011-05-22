@@ -7,8 +7,11 @@
 
 
 void sharp_initialize_all(void);
-void sharp_schedule(void);
 unsigned int sharp_adc10_to_mm(uint16_t);
+
+#if 0 /* UNUSED */
+void sharp_schedule(void);
+#endif /* UNUSED */
 
 
 /* innlined routines */

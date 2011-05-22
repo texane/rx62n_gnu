@@ -84,6 +84,9 @@ unsigned int sharp_adc10_to_mm(uint16_t v)
   return pairs[pos - 1][1] + ((pairs[pos - 1][0] - v) * dd) / vd;
 }
 
+
+#if 0 /* UNUSED */
+
 void sharp_schedule(void)
 {
   static uint16_t values[2];
@@ -123,3 +126,5 @@ void sharp_schedule(void)
     rip = 1;
   }
 }
+
+#endif /* UNUSED */

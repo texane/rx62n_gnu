@@ -32,6 +32,10 @@
 # include "sharp.h"
 #endif
 
+#if CONFIG_ENABLE_IGREBOARD
+# include "igreboard.h"
+#endif
+
 #if CONFIG_ENABLE_AVERSIVE
 
 # include "aversive.h"
@@ -243,6 +247,71 @@ static void do_test(void)
 #endif
 }
 
+#elif CONFIG_DO_IGREBOARD
+
+static inline char nibble_to_ascii(uint8_t value)
+{
+  if (value >= 0xa) return 'a' + value - 0xa;
+  return '0' + value;
+}
+
+static const char* uint16_to_string(uint16_t value)
+{
+  static char buf[8];
+  unsigned int i;
+
+  for (i = 0; i < 4; ++i, value >>= 4)
+    buf[4 - i - 1] = nibble_to_ascii(value & 0xf);
+  buf[i] = 0;
+
+  return buf;
+}
+
+static inline void print_uint16
+(unsigned int row, unsigned int col, uint16_t value)
+{
+  lcd_string((uint8_t)row, (uint8_t)col, uint16_to_string(value));
+}
+
+static void do_test(void)
+{
+  unsigned int led = 0;
+  unsigned int i;
+  unsigned int row, col;
+  unsigned int values[8];
+  unsigned int msecs[2];
+
+  while (1)
+  {
+    /* wait for at least 500 ms */
+    msecs[0] = swatch_get_elapsed_msecs();
+    if ((msecs[0] - msecs[1]) < 500) continue ;
+    msecs[1] = msecs[0];
+
+    /* update leds */
+    igreboard_set_led(0, led);
+    igreboard_set_led(2, led);
+    led ^= 1;
+    igreboard_set_led(1, led);
+    igreboard_set_led(3, led);
+
+    /* read and display adcs */
+    row = 3;
+    for (i = 0; i < 8; ++i)
+    {
+      col = 30;
+      if ((i & 1) == 0)
+      {
+	++row;
+	col = 0;
+      }
+
+      igreboard_read_adc(i, &values[i]);
+      print_uint16(row, col, (uint16_t)values[i]);
+    }
+  }
+}
+
 #else
 
 static void do_test(void)
@@ -350,9 +419,5 @@ void tick_isr(void)
 
 #if CONFIG_ENABLE_RADAR
   radar_schedule();
-#endif
-
-#if CONFIG_ENABLE_SHARP
-  sharp_schedule();
 #endif
 }

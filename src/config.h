@@ -8,14 +8,15 @@
 #define CONFIG_PCLK_FREQ 48000000 /* in hertz */
 #define CONFIG_TIMER_FREQ 10 /* in hertz */
 
-#define CONFIG_SWATCH_MSECS 10000 /* match duration */
+#define CONFIG_SWATCH_MSECS 90000 /* match duration */
 
 #define CONFIG_DO_SQUARE 0
 #define CONFIG_DO_KEYVAL 0
 #define CONFIG_DO_TAKEPAWN 0
-#define CONFIG_DO_GRIPPER 1
+#define CONFIG_DO_IGREBOARD 1
 
 #define CONFIG_ENABLE_AVERSIVE 1
+#define CONFIG_ENABLE_IGREBOARD 1
 #define CONFIG_ENABLE_SHARP 0
 #define CONFIG_ENABLE_SWITCHES 0
 #define CONFIG_ENABLE_RADAR 0

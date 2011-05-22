@@ -79,6 +79,9 @@ int aversive_traj_status(aversive_dev_t*, int*);
 int aversive_set_blocking_params(aversive_dev_t*, int16_t, int16_t, int16_t);
 int aversive_set_blocking_params2(aversive_dev_t*, int16_t, int16_t);
 
+/* passthru routine */
+int aversive_send_msg3(aversive_dev_t*, uint8_t, uint16_t*);
+
 /* debugging routine */
 int aversive_read_keyval(aversive_dev_t*, uint16_t, uint16_t*);
 int aversive_write_keyval(aversive_dev_t*, uint16_t, uint16_t);

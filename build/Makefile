@@ -19,6 +19,7 @@ OBJS =				\
 	../src/adc.o		\
 	../src/sharp.o		\
 	../src/aversive.o	\
+	../src/igreboard.o	\
 	../src/can.o		\
 	../src/lcd.o		\
 	../src/font_x5x7.o	\

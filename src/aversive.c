@@ -435,6 +435,7 @@ int aversive_open(aversive_dev_t* dev)
 #endif
 
 #if (CONFIG_DO_KEYVAL == 0)
+#if (CONFIG_DO_IGREBOARD == 0)
 
   /* send the following to initialize aversive
    */
@@ -449,6 +450,7 @@ int aversive_open(aversive_dev_t* dev)
   aversive_set_blocking_params(dev, 5, 300, 8000);
   aversive_set_blocking_params2(dev, 150, 150);
 
+#endif /* CONFIG_DO_IGREBOARD == 0 */
 #endif /* CONFIG_DO_KEYVAL == 0 */
 
   return 0;
@@ -769,4 +771,10 @@ int aversive_read(aversive_dev_t* dev, uint8_t* buf)
     buf[i] = dev->rx_dataframe->data[i];
 
   return 0;
+}
+
+
+int aversive_send_msg3(aversive_dev_t* dev, uint8_t cmd, uint16_t* values)
+{
+  return send_msg3(dev, cmd, (int16_t*)values);
 }
