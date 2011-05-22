@@ -77,6 +77,6 @@ int igreboard_read_adc(unsigned int chan, unsigned int* value)
   uint16_t values[] = { chan, 0, 0 };
   if (send_recv_msg(IGREBOARD_CMD_READ_ADC, values))
     return -1;
-  *value = (unsigned int)values[0];
+  *value = (unsigned int)values[1];
   return 0;
 }

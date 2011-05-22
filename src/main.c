@@ -285,6 +285,8 @@ static void do_test(void)
 
   while (1)
   {
+    lcd_string(0, 0, "fubaz");
+
     aversive_poll_bus(&aversive_device);
 
     lcd_string(0, 0, "barfu");
@@ -303,10 +305,12 @@ static void do_test(void)
     igreboard_set_led(1, led);
     igreboard_set_led(3, led);
 
-#if 0
+    /* read adcs */
+    for (i = 0; i < 8; ++i)
+      igreboard_read_adc(i, &values[i]);
 
-    /* read and display adcs */
-    row = 3;
+    /* display adcs */
+    row = 0;
     for (i = 0; i < 8; ++i)
     {
       col = 30;
@@ -316,11 +320,8 @@ static void do_test(void)
 	col = 0;
       }
 
-      igreboard_read_adc(i, &values[i]);
       print_uint16(row, col, (uint16_t)values[i]);
     }
-
-#endif
 
   }
 }
@@ -344,7 +345,6 @@ static int initialize(void)
 
   /* init devices */
   lcd_open();
-  lcd_string(2, 0, "initialize");
 
 #if CONFIG_ENABLE_AVERSIVE
   if (aversive_open(&aversive_device) == -1)
@@ -352,7 +352,6 @@ static int initialize(void)
     lcd_string(3, 0, "[!] aversive_open");
     return -1;
   }
-  lcd_string(2, 0, "aversived ");
 #endif /* CONFIG_ENABLE_AVERSIVE */
 
 #if CONFIG_ENABLE_BLINKER
@@ -379,12 +378,8 @@ static int initialize(void)
   gripper_initialize();
 #endif
 
-  lcd_string(2, 0, "tasked    ");
-
   /* init and start the scheduler */
   sched_initialize();
-
-  lcd_string(2, 0, "scheduled ");
 
   return 0;
 }
