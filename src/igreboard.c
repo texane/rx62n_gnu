@@ -74,7 +74,7 @@ int igreboard_ping_device(void)
 
 int igreboard_read_adc(unsigned int chan, unsigned int* value)
 {
-  uint16_t values[] = { chan, 0, 0 };
+  uint16_t values[] = { (uint16_t)chan, 0, 0 };
   if (send_recv_msg(IGREBOARD_CMD_READ_ADC, values))
     return -1;
   *value = (unsigned int)values[1];

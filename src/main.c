@@ -299,15 +299,22 @@ static void do_test(void)
     lcd_string(0, 0, "fubar");
 
     /* update leds */
-    igreboard_set_led(0, led);
-    igreboard_set_led(2, led);
+    igreboard_set_led(0, led & 1);
+    igreboard_set_led(2, led & 1);
     led ^= 1;
-    igreboard_set_led(1, led);
-    igreboard_set_led(3, led);
+    igreboard_set_led(1, led & 1);
+    igreboard_set_led(3, led & 1);
 
     /* read adcs */
     for (i = 0; i < 8; ++i)
-      igreboard_read_adc(i, &values[i]);
+    {
+      /* analog input ranges [0:2], [8:12] */
+      unsigned int translated = i;
+      if (translated > 2) translated += 5;
+
+      if (igreboard_read_adc(translated, &values[i]) == -1)
+	values[i] = (unsigned int)-1;
+    }
 
     /* display adcs */
     row = 0;
