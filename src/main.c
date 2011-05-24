@@ -280,6 +280,7 @@ static void do_test(void)
   unsigned int row, col;
   unsigned int values[8];
   unsigned int msecs[2];
+  unsigned int openclose = 0;
 
   msecs[1] = swatch_get_elapsed_msecs();
 
@@ -293,10 +294,17 @@ static void do_test(void)
 
     /* wait for at least 1 second */
     msecs[0] = swatch_get_elapsed_msecs();
-    if ((msecs[0] - msecs[1]) < 500) continue ;
+    if ((msecs[0] - msecs[1]) < 1000) continue ;
     msecs[1] = msecs[0];
 
     lcd_string(0, 0, "fubar");
+
+    /* open close gripper */
+    if ((openclose & 1) == 0)
+      igreboard_open_gripper();
+    else
+      igreboard_close_gripper();
+    openclose ^= 1;
 
     /* update leds */
     igreboard_set_led(0, led & 1);
