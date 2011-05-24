@@ -306,6 +306,10 @@ static void do_test(void)
       igreboard_close_gripper();
     openclose ^= 1;
 
+    /* read gripper switch */
+    igreboard_get_gripper_switch(&i);
+    print_uint16(6, 0, (uint16_t)i);
+
     /* update leds */
     igreboard_set_led(0, led & 1);
     igreboard_set_led(2, led & 1);
