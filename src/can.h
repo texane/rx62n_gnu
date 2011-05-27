@@ -174,5 +174,33 @@ extern void		R_CAN_RxSetMask(const uint32_t ch_nr, const uint32_t mbox_nr, const
 /* ERRORS */
 extern uint32_t	R_CAN_CheckErr(const uint32_t ch_nr);
 
+
+/* can device api */
+
+typedef struct can_dev
+{
+  /* frame buffers */
+  can_std_frame_t* tx_dataframe;
+  can_std_frame_t* rx_dataframe;
+  can_std_frame_t* remote_frame;
+
+  /* standard identifier */
+  uint32_t sid;
+
+  /* message sequence number */
+  uint8_t seq;
+
+  /* openclose refn */
+  unsigned int refn;
+
+} can_dev_t;
+
+can_dev_t* can_open(void);
+void can_close(can_dev_t*);
+int can_poll_bus(can_dev_t*);
+uint16_t can_send_msg0(can_dev_t*, uint8_t, uint16_t);
+int can_send_msg3(can_dev_t*, uint8_t, uint16_t*);
+
+
 #endif	/* R_CAN_API.H */
 /* eof */

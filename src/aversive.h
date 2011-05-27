@@ -28,25 +28,16 @@ typedef struct aversive_dev
 
 #elif CONFIG_USE_CAN
 
+/* dont forward decl, include to force config */
 #include "can_config.h"
 #include "can.h"
 
 typedef struct aversive_dev
 {
-  /* frame buffers */
-  can_std_frame_t* tx_dataframe;
-  can_std_frame_t* rx_dataframe;
-  can_std_frame_t* remote_frame;
-
-  /* standard identifier */
-  uint32_t sid;
-
-  /* message sequence number */
-  uint8_t seq;
-
+  can_dev_t* can_dev;
 } aversive_dev_t;
 
-#define AVERSIVE_DEV_INITIALIZER { {0}, }
+#define AVERSIVE_DEV_INITIALIZER { 0 }
 
 #endif
 
@@ -85,12 +76,6 @@ int aversive_send_msg3(aversive_dev_t*, uint8_t, uint16_t*);
 /* debugging routine */
 int aversive_read_keyval(aversive_dev_t*, uint16_t, uint16_t*);
 int aversive_write_keyval(aversive_dev_t*, uint16_t, uint16_t);
-int aversive_read(aversive_dev_t*, uint8_t*);
-
-#if CONFIG_USE_CAN
-int aversive_poll_bus(aversive_dev_t*);
-#endif
 
 
-
-#endif /* ! AVERSIVE_DEVICE_H_INCLUDED */
+#endif /* ! AVERSIVE_H_INCLUDED */

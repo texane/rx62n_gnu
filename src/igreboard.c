@@ -1,15 +1,10 @@
 #include "config.h"
 #include <stdint.h>
 #include "iodefine.h"
+#include "can_config.h"
+#include "can.h"
+#include "igreboard.h"
 
-
-/* internal */
-
-/* this is still messy since aversive_dev_t is
-   required to send a can message... this will
-   be removed in a near futur, and we mask this
-   dependency with the send_recv_msg routine.
- */
 
 #define IGREBOARD_CMD_SET_LED 0x00
 #define IGREBOARD_CMD_OPEN_GRIPPER 0x01
@@ -21,61 +16,74 @@
 #define IGREBOARD_CMD_UNKNOWN ((uint8_t)-1)
 
 
-#include "aversive.h"
-
-extern aversive_dev_t aversive_device;
-
-static inline int send_recv_msg(uint8_t cmd, uint16_t* values)
+static inline int send_recv_msg
+(igreboard_dev_t* dev, uint8_t cmd, uint16_t* values)
 {
-  return aversive_send_msg3(&aversive_device, cmd, values);
+  return can_send_msg3(dev->can_dev, cmd, values);
 }
 
 
 /* exported */
 
-int igreboard_set_led(unsigned int index, unsigned int value)
+int igreboard_open(igreboard_dev_t* dev)
+{
+  dev->can_dev = can_open();
+  if (dev->can_dev == 0)
+    return -1;
+  return 0;
+}
+
+void igreboard_close(igreboard_dev_t* dev)
+{
+  can_close(dev->can_dev);
+}
+
+int igreboard_set_led
+(igreboard_dev_t* dev, unsigned int index, unsigned int value)
 {
   uint16_t values[] = { index, value, 0 };
-  return send_recv_msg(IGREBOARD_CMD_SET_LED, values);
+  return send_recv_msg(dev, IGREBOARD_CMD_SET_LED, values);
 }
 
-int igreboard_open_gripper(void)
+int igreboard_open_gripper(igreboard_dev_t* dev)
 {
   uint16_t values[] = { 0, 0, 0 };
-  return send_recv_msg(IGREBOARD_CMD_OPEN_GRIPPER, values);
+  return send_recv_msg(dev, IGREBOARD_CMD_OPEN_GRIPPER, values);
 }
 
-int igreboard_close_gripper(void)
+int igreboard_close_gripper(igreboard_dev_t* dev)
 {
   uint16_t values[] = { 0, 0, 0 };
-  return send_recv_msg(IGREBOARD_CMD_CLOSE_GRIPPER, values);
+  return send_recv_msg(dev, IGREBOARD_CMD_CLOSE_GRIPPER, values);
 }
 
-int igreboard_get_gripper_switch(unsigned int* value)
+int igreboard_get_gripper_switch
+(igreboard_dev_t* dev, unsigned int* value)
 {
   uint16_t values[] = { 0, 0, 0 };
-  if (send_recv_msg(IGREBOARD_CMD_GET_GRIPPER_SWITCH, values))
+  if (send_recv_msg(dev, IGREBOARD_CMD_GET_GRIPPER_SWITCH, values))
     return -1;
   *value = (unsigned int)values[0];
   return 0;
 }
 
-int igreboard_print_string(const char* s)
+int igreboard_print_string(igreboard_dev_t* dev, const char* s)
 {
-  return send_recv_msg(IGREBOARD_CMD_PRINT_BUF, (uint16_t*)s);
+  return send_recv_msg(dev, IGREBOARD_CMD_PRINT_BUF, (uint16_t*)s);
 }
 
-int igreboard_ping_device(void)
+int igreboard_ping_device(igreboard_dev_t* dev)
 {
   uint16_t values[] = { 0, 0, 0 };
-  return send_recv_msg(IGREBOARD_CMD_PING_DEVICE, values);
+  return send_recv_msg(dev, IGREBOARD_CMD_PING_DEVICE, values);
 }
 
 
-int igreboard_read_adc(unsigned int chan, unsigned int* value)
+int igreboard_read_adc
+(igreboard_dev_t* dev, unsigned int chan, unsigned int* value)
 {
   uint16_t values[] = { (uint16_t)chan, 0, 0 };
-  if (send_recv_msg(IGREBOARD_CMD_READ_ADC, values))
+  if (send_recv_msg(dev, IGREBOARD_CMD_READ_ADC, values))
     return -1;
   *value = (unsigned int)values[1];
   return 0;

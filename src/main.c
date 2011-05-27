@@ -34,28 +34,12 @@
 
 #if CONFIG_ENABLE_IGREBOARD
 # include "igreboard.h"
-#endif
+igreboard_dev_t igreboard_device;
+#endif /* CONFIG_ENABLE_IGREBOARD */
 
 #if CONFIG_ENABLE_AVERSIVE
-
 # include "aversive.h"
-
-/* global aversive device context */
 aversive_dev_t aversive_device;
-
-/* can globals */
-extern can_std_frame_t tx_dataframe;
-extern can_std_frame_t rx_dataframe;
-extern can_std_frame_t remote_frame;
-
-#ifndef USE_CAN_POLL
-extern uint32_t can0_tx_sentdata_flag;
-extern uint32_t can0_tx_remote_sentdata_flag;
-extern uint32_t can0_rx_newdata_flag;
-extern uint32_t can0_rx_test_newdata_flag;
-extern uint32_t can0_rx_remote_frame_flag;
-#endif /* !USE_CAN_POLL */
-
 #endif /* CONFIG_ENABLE_AVERSIVE */
 
 
@@ -288,7 +272,11 @@ static void do_test(void)
   {
     lcd_string(0, 0, "fubaz");
 
-    aversive_poll_bus(&aversive_device);
+#if CONFIG_ENABLE_IGREBOARD
+    can_poll_bus(igreboard_device.can_dev);
+#elif (CONFIG_ENABLE_AVERSIVE && CONFIG_USE_CAN)
+    can_poll_bus(aversive_device.can_dev);
+#endif
 
     lcd_string(0, 0, "barfu");
 
@@ -301,21 +289,21 @@ static void do_test(void)
 
     /* open close gripper */
     if ((openclose & 1) == 0)
-      igreboard_open_gripper();
+      igreboard_open_gripper(&igreboard_device);
     else
-      igreboard_close_gripper();
+      igreboard_close_gripper(&igreboard_device);
     openclose ^= 1;
 
     /* read gripper switch */
-    igreboard_get_gripper_switch(&i);
+    igreboard_get_gripper_switch(&igreboard_device, &i);
     print_uint16(6, 0, (uint16_t)i);
 
     /* update leds */
-    igreboard_set_led(0, led & 1);
-    igreboard_set_led(2, led & 1);
+    igreboard_set_led(&igreboard_device, 0, led & 1);
+    igreboard_set_led(&igreboard_device, 2, led & 1);
     led ^= 1;
-    igreboard_set_led(1, led & 1);
-    igreboard_set_led(3, led & 1);
+    igreboard_set_led(&igreboard_device, 1, led & 1);
+    igreboard_set_led(&igreboard_device, 3, led & 1);
 
     /* read adcs */
     for (i = 0; i < 8; ++i)
@@ -324,7 +312,7 @@ static void do_test(void)
       unsigned int translated = i;
       if (translated > 2) translated += 5;
 
-      if (igreboard_read_adc(translated, &values[i]) == -1)
+      if (igreboard_read_adc(&igreboard_device, translated, &values[i]) == -1)
 	values[i] = (unsigned int)-1;
     }
 
@@ -342,6 +330,68 @@ static void do_test(void)
       print_uint16(row, col, (uint16_t)values[i]);
     }
 
+  }
+}
+
+#elif CONFIG_DO_ADC
+
+static inline char nibble_to_ascii(uint8_t value)
+{
+  if (value >= 0xa) return 'a' + value - 0xa;
+  return '0' + value;
+}
+
+static const char* uint16_to_string(uint16_t value)
+{
+  static char buf[8];
+  unsigned int i;
+
+  for (i = 0; i < 4; ++i, value >>= 4)
+    buf[4 - i - 1] = nibble_to_ascii(value & 0xf);
+  buf[i] = 0;
+
+  return buf;
+}
+
+static inline void print_uint16
+(unsigned int row, unsigned int col, uint16_t value)
+{
+  lcd_string((uint8_t)row, (uint8_t)col, uint16_to_string(value));
+}
+
+static void do_test(void)
+{
+  unsigned int values[2];
+  unsigned int i;
+  unsigned int row, col;
+  unsigned int msecs[2];
+
+  msecs[1] = swatch_get_elapsed_msecs();
+
+  while (1)
+  {
+    /* wait for at least 1 second */
+    msecs[0] = swatch_get_elapsed_msecs();
+    if ((msecs[0] - msecs[1]) < 1000) continue ;
+    msecs[1] = msecs[0];
+
+    lcd_string(0, 0, "barfu");
+    values[0] = sharp_read_fr();
+    values[1] = sharp_read_fl();
+
+    /* display adcs */
+    row = 0;
+    for (i = 0; i < 8; ++i)
+    {
+      col = 30;
+      if ((i & 1) == 0)
+      {
+	++row;
+	col = 0;
+      }
+
+      print_uint16(row, col, (uint16_t)values[i]);
+    }
   }
 }
 
@@ -372,6 +422,14 @@ static int initialize(void)
     return -1;
   }
 #endif /* CONFIG_ENABLE_AVERSIVE */
+
+#if CONFIG_ENABLE_IGREBOARD
+  if (igreboard_open(&igreboard_device) == -1)
+  {
+    lcd_string(3, 0, "[!] igreboard_open");
+    return -1;
+  }
+#endif /* CONFIG_ENABLE_IGREBOARD */
 
 #if CONFIG_ENABLE_BLINKER
   blinker_initialize();
@@ -407,6 +465,10 @@ static void finalize(void)
 {
 #if CONFIG_ENABLE_AVERSIVE
   aversive_close(&aversive_device);
+#endif
+
+#if CONFIG_ENABLE_IGREBOARD
+  igreboard_close(&igreboard_device);
 #endif
 }
 

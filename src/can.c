@@ -1184,4 +1184,401 @@ void CAN0_TXF0_ISR(void)
 #endif //USE_CAN_POLL
 #endif //CAPI_CFG_CAN0_ISR
 
-/* eof */
+
+/* can device api */
+
+/* interrupt related flags */
+#ifndef USE_CAN_POLL
+static uint32_t can0_tx_sentdata_flag = 0;
+static uint32_t can0_tx_remote_sentdata_flag = 0;
+static uint32_t can0_rx_newdata_flag = 0;
+static uint32_t can0_rx_test_newdata_flag = 0;
+static uint32_t can0_rx_remote_frame_flag = 0;
+#endif /* USE_CAN_POLL */
+
+/* frames */
+static can_std_frame_t tx_dataframe;
+static can_std_frame_t rx_dataframe;
+static can_std_frame_t remote_frame;
+
+/* node CAN state */
+static uint32_t error_bus_status;
+static uint32_t error_bus_status_prev;
+
+static int setup_can_hardware(void)
+{
+  /* note: assume HardwareSetup called
+   */
+
+  /* Configure mailboxes in Halt mode. */
+  if (R_CAN_Control(0, HALT_CANMODE) != R_CAN_OK)
+  {
+    lcd_string(4, 0, "r_can_control");
+    return -1;
+  }
+
+  /* reset bus states */
+  error_bus_status = 0;
+  error_bus_status_prev = 0;
+
+  /* reset error judge factor and error code registers */
+  CAN0.EIFR.BYTE = 0;
+  CAN0.ECSR.BYTE = 0;
+
+  /* reset error counters */
+  CAN0.RECR = 0;
+  CAN0.TECR = 0;
+
+  /* setup receiving mailboxes */
+  if (R_CAN_RxSet(0, CANBOX_RX, 0, DATA_FRAME) != R_CAN_OK)
+  {
+    lcd_string(4, 0, "r_can_rxset_data");
+    return -1;
+  }
+
+  if (R_CAN_RxSet(0, CANBOX_REMOTE_RX, 0, REMOTE_FRAME) != R_CAN_OK)
+  {
+    lcd_string(4, 0, "r_can_rxset_remote");
+    return -1;
+  }
+
+  /* receivall mailboxes (mask == 0), ie.:
+     if ((frame->sid & mbox->mask) == mbox.id) mbox.data = frame.data
+     note that R_CAN_RxSetMask enables CANMODE, so we call those after RxSet.
+   */
+  R_CAN_RxSetMask(0, CANBOX_RX, 0);
+  R_CAN_RxSetMask(0, CANBOX_REMOTE_RX, 0);
+		
+  /* switch to operate mode. */
+  if (R_CAN_Control(0, OPERATE_CANMODE) != R_CAN_OK)
+  {
+    lcd_string(4, 0, "r_can_control");
+    return -1;
+  }
+
+  return 0;
+}
+
+can_dev_t* can_open(void)
+{
+  /* singleton */
+  static can_dev_t dev = { 0, 0, 0, 0, 0, 0 };
+
+  /* already initialized */
+  if (dev.refn++) return 0;
+
+  /* initialize CAN hardware
+   */
+
+  if (R_CAN_Create(0) != R_CAN_OK)
+  {
+    lcd_string(4, 0, "r_can_create");
+    return 0;
+  }
+
+  if (R_CAN_PortSet(0, ENABLE) != R_CAN_OK)
+  {
+    lcd_string(4, 0, "r_can_portset");
+    return 0;
+  }
+
+  if (setup_can_hardware() == -1)
+  {
+    return 0;
+  }
+
+  /* assign internal fields
+   */
+
+  dev.sid = 0x123;
+  dev.seq = 0;
+
+  dev.tx_dataframe = &tx_dataframe;
+  tx_dataframe.id = dev.sid;
+  tx_dataframe.dlc = 8;
+
+  dev.rx_dataframe = &rx_dataframe;
+  rx_dataframe.id = 0;
+
+  dev.remote_frame = &remote_frame;
+  remote_frame.id = 0;
+
+  return &dev;
+}
+
+void can_close(can_dev_t* dev)
+{
+  /* assume at least one previous can_open */
+
+  if (--dev->refn) return ;
+
+  /* todo: release device */
+}
+
+int can_poll_bus(can_dev_t* dev)
+{
+  can_std_frame_t err_tx_dataframe;
+	
+  error_bus_status = R_CAN_CheckErr(0);
+
+  /* state has changed */
+  if (error_bus_status == error_bus_status_prev)
+    return 0;
+
+  switch (error_bus_status)
+  {
+    /* ACTIVE state */
+  case R_CAN_STATUS_ERROR_ACTIVE:
+    {
+      /* restart from BUSOFF state */
+      if (error_bus_status_prev == R_CAN_STATUS_BUSOFF)
+      {
+	if (setup_can_hardware() == -1)
+	  return -1;
+      }
+      break;
+    }
+
+    /* PASSIVE state */
+  case R_CAN_STATUS_ERROR_PASSIVE:
+    {
+      break ;
+    }
+
+    /* BUSOFF state */
+  case R_CAN_STATUS_BUSOFF:
+    {
+      break ;
+    }
+
+  default:
+    {
+      break ;
+    }
+  } /* switch state */
+
+  /* update previous state */
+  error_bus_status_prev = error_bus_status;
+
+  /* transmit CAN bus status change */
+  err_tx_dataframe.id = 0x700;
+  err_tx_dataframe.dlc = 1;
+  err_tx_dataframe.data[0] = error_bus_status;
+  R_CAN_TxSet(0, CANBOX_ERROR_TX, &err_tx_dataframe, DATA_FRAME);
+
+  return 0;
+}
+
+
+/* CAN low level routines. i2c equivalent here:
+   trunk\Info\2010\sbc2410\i2c-testing\master
+ */
+
+#if 0 /* kpit gnu compiler uses single byte packing by default */
+# define ATTRIBUTE_PACKED
+#else
+# define ATTRIBUTE_PACKED __attribute__((packed))
+#endif
+
+
+struct can_msg0
+{
+  uint8_t cmd;
+  uint8_t value[2];
+} ATTRIBUTE_PACKED;
+
+struct can_msg3
+{
+  uint8_t cmd;
+  uint8_t seq;
+  uint16_t value[3];
+} ATTRIBUTE_PACKED;
+
+
+/* CAN io wrappers */
+
+#if 1 /* LITTLE_ENDIAN */
+
+# define mach_to_le(__val) __val
+# define le_to_mach(__val) __val
+
+#else
+
+static inline uint16_t mach_to_le(uint16_t val)
+{ return (value & 0xff) << 8 | ((value & 0xff00) >> 8); }
+
+static inline uint16_t le_to_mach(uint16_t val)
+{ return mach_to_le(val); }
+
+#endif
+
+static int send_frame(can_dev_t* dev)
+{
+  dev->tx_dataframe->id = dev->sid;
+  dev->tx_dataframe->dlc = 8;
+
+  if (R_CAN_TxSet(0, CANBOX_TX, dev->tx_dataframe, DATA_FRAME) != R_CAN_OK)
+    return -1;
+
+#ifdef USE_CAN_POLL
+
+#if 1 /* NEEDED */
+
+  /* the documentation suggests calling this function can be
+     omitted since we can reasonably assume the message has
+     been sent on TxSet success. BUT not checking it, we
+     possibly destroy the frame contents before it gets sent
+   */
+
+  while (R_CAN_TxCheck(0, CANBOX_TX))
+    ;
+
+#endif /* TODO */
+
+#else /* can interrupts */
+
+  while (can0_tx_sentdata_flag == 0)
+  {
+    can_poll_bus(dev);
+  }
+
+  can0_tx_sentdata_flag = 0;
+
+#endif /* USE_CAN_POLL */
+
+  return 0;
+}
+
+
+static int recv_frame(can_dev_t* dev)
+{
+#ifdef USE_CAN_POLL
+
+  /* assuming 100mhz, wait for approx N x 0.1 secs max */
+  unsigned int count = 2000000;
+
+  while (R_CAN_RxPoll(0, CANBOX_RX) != R_CAN_OK)
+  {
+    if (--count == 0)
+      return -1;
+  }
+
+  if (R_CAN_RxRead(0, CANBOX_RX, dev->rx_dataframe) != R_CAN_OK)
+    return -1;
+
+  return 0;
+
+#else /* can interrupts */
+
+  if (can0_rx_newdata_flag)
+  {
+    can0_rx_newdata_flag = 0;
+	
+    if (R_CAN_RxRead(0, CANBOX_RX, dev->rx_dataframe) != R_CAN_OK)
+    {
+      can0_rx_newdata_flag = 0;
+      return -1;
+    }
+  }
+
+  if (can0_rx_test_newdata_flag)
+  {
+    can0_rx_test_newdata_flag = 0;
+  }
+
+  /* Set up remote reply if remote request came in. */
+  if (can0_rx_remote_frame_flag == 1)
+  {
+    /* should not occur */
+    can0_rx_remote_frame_flag = 0;
+    R_CAN_TxSet(0, CANBOX_REMOTE_TX, dev->remote_frame, DATA_FRAME);
+  }
+
+#endif /* USE_CAN_POLL */
+}
+
+
+uint16_t can_send_msg0(can_dev_t* dev, uint8_t cmd, uint16_t value)
+{
+#define CONFIG_SEND_TRIALS 5
+  unsigned int trials = CONFIG_SEND_TRIALS;
+
+  struct can_msg0* msg;
+
+  for (; trials; --trials)
+  {
+    msg = (struct can_msg0*)dev->tx_dataframe->data;
+
+    msg->cmd = cmd;
+    msg->value[0] = (value & 0xff00) >> 8;
+    msg->value[1] = value & 0xff;
+
+    if (send_frame(dev) == -1)
+      continue ;
+
+    msg = (struct can_msg0*)dev->rx_dataframe->data;
+
+    /* reset command for further check */
+    msg->cmd = 0;
+
+    if (recv_frame(dev) == -1)
+      continue ;
+
+    /* not the intended message, redo */
+    if (msg->cmd != cmd)
+      continue ;
+
+    break;
+  }
+
+  return le_to_mach(*(uint16_t*)msg->value);
+}
+
+
+int can_send_msg3(can_dev_t* dev, uint8_t cmd, uint16_t* values)
+{
+  /* long version */
+
+  unsigned int trials = CONFIG_SEND_TRIALS;
+  uint8_t seq;
+  struct can_msg3* msg;
+
+  /* pick a sequence number */
+  seq = ++dev->seq;
+
+  for (; trials; --trials)
+  {
+    msg = (struct can_msg3*)dev->tx_dataframe->data;
+
+    msg->cmd = cmd;
+    msg->value[0] = mach_to_le(values[0]);
+    msg->value[1] = mach_to_le(values[1]);
+    msg->value[2] = mach_to_le(values[2]);
+    msg->seq = seq;
+
+    if (send_frame(dev) == -1)
+      continue ;
+
+    msg = (struct can_msg3*)dev->rx_dataframe->data;
+
+    /* reset command for further check */
+    msg->cmd = 0;
+
+    if (recv_frame(dev) == -1)
+      continue ;
+
+    if (msg->cmd != cmd)
+      continue ;
+
+    break;
+  }
+
+  if (trials == 0)
+    return -1;
+
+  values[0] = msg->value[0];
+  values[1] = msg->value[1];
+  values[2] = msg->value[2];
+
+  return 0;
+}

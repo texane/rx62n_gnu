@@ -2,13 +2,25 @@
 # define IGREBOARD_H_INCLUDED
 
 
-int igreboard_set_led(unsigned int, unsigned int);
-int igreboard_open_gripper(void);
-int igreboard_close_gripper(void);
-int igreboard_get_gripper_switch(unsigned int*);
-int igreboard_print_string(const char*);
-int igreboard_ping_device(void);
-int igreboard_read_adc(unsigned int, unsigned int*);
+/* dont forward decl, include to force config */
+#include "can_config.h"
+#include "can.h"
+
+typedef struct igreboard_dev
+{
+  can_dev_t* can_dev;
+} igreboard_dev_t;
+
+
+int igreboard_open(igreboard_dev_t*);
+void igreboard_close(igreboard_dev_t*);
+int igreboard_set_led(igreboard_dev_t*, unsigned int, unsigned int);
+int igreboard_open_gripper(igreboard_dev_t*);
+int igreboard_close_gripper(igreboard_dev_t*);
+int igreboard_get_gripper_switch(igreboard_dev_t*, unsigned int*);
+int igreboard_print_string(igreboard_dev_t*, const char*);
+int igreboard_ping_device(igreboard_dev_t*);
+int igreboard_read_adc(igreboard_dev_t*, unsigned int, unsigned int*);
 
 
 #endif /* ! IGREBOARD_H_INCLUDED */
