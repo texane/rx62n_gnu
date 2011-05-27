@@ -7,10 +7,7 @@
 #include "sched.h"
 #include "hwsetup.h"
 #include "fsm.h"
-
-#if CONFIG_ENABLE_GRIPPER
-# include "gripper.h"
-#endif
+#include "unit.h"
 
 #if CONFIG_ENABLE_SWITCHES
 # include "switches.h"
@@ -41,368 +38,6 @@ igreboard_dev_t igreboard_device;
 # include "aversive.h"
 aversive_dev_t aversive_device;
 #endif /* CONFIG_ENABLE_AVERSIVE */
-
-
-/* test programs */
-
-#if CONFIG_DO_KEYVAL
-
-static inline char nibble_to_ascii(uint8_t value)
-{
-  if (value >= 0xa) return 'a' + value - 0xa;
-  return '0' + value;
-}
-
-static const char* uint16_to_string(uint16_t value)
-{
-  static char buf[8];
-  unsigned int i;
-
-  for (i = 0; i < 4; ++i, value >>= 4)
-    buf[4 - i - 1] = nibble_to_ascii(value & 0xf);
-  buf[i] = 0;
-
-  return buf;
-}
-
-static void do_test(void)
-{
-  aversive_dev_t* const dev = &aversive_device;
-
-  uint16_t pass = 0;
-
-#define MAX_KEYS 0x10
-  uint16_t expected_vals[MAX_KEYS];
-
-  uint16_t key, val;
-
-  for (key = 0; key < MAX_KEYS; ++key)
-  {
-    if (aversive_write_keyval(dev, key, key) == -1)
-    {
-      lcd_string(3, 0, "[!] 0");
-      return ;
-    }
-
-    expected_vals[key] = key;
-  }
-
-  while (1)
-  {
-    aversive_poll_bus(dev);
-
-    for (key = 0; key < MAX_KEYS; ++key)
-    {
-      if (aversive_read_keyval(dev, key, &val) == -1)
-      {
-	lcd_string(3, 0, "[!] R");
-	return ;
-      }
-
-      if (expected_vals[key] != val)
-      {
-	lcd_string(3, 0, "[!] R");
-	return ;
-      }
-
-      if (aversive_write_keyval(dev, key, val + 1) == -1)
-      {
-	lcd_string(3, 0, "[!] W");
-	return ;
-      }
-
-      expected_vals[key] = (val + 1) & 0xffff;
-
-#if 0
-      /* report frame rate once every 0x20 wrapping */
-      if ((key == 0) && ((val & 0x1f) == 0))
-      {
-	lcd_string(3, 10, uint16_to_string(val));
-      }
-#endif
-
-    }
-
-    lcd_string(3, 10, uint16_to_string(pass++));
-  }
-}
-
-#elif CONFIG_DO_SQUARE
-
-static void wait_abit(void)
-{
-  volatile unsigned int i;
-  for (i = 0; i < 1000; ++i) asm("nop");
-}
-
-static int wait_done(aversive_dev_t* dev)
-{
-  int is_done;
-
-  for (is_done = 0; is_done == 0; )
-  {
-    wait_abit();
-    aversive_is_traj_done(dev, &is_done);
-
-    if (aversive_poll_bus(dev) == -1)
-    {
-      lcd_string(3, 0, "[!] aversive_poll_bus");
-      return -1;
-    }
-  }
-
-  return 0;
-}
-
-static int do_turn(aversive_dev_t* dev, unsigned int a)
-{
-  /* a the angle in degrees */
-
-  if (aversive_turn(dev, a) == -1)
-  {
-    lcd_string(3, 0, "[!] aversive_turn");
-    return -1;
-  }
-
-  return wait_done(dev);
-}
-
-static int do_move(aversive_dev_t* dev, unsigned int d)
-{
-  /* d the distance in mm */
-
-  if (aversive_move_forward(dev, d) == -1)
-  {
-    lcd_string(3, 0, "[!] aversive_turn");
-    return -1;
-  }
-
-  return wait_done(dev);
-}
-
-static int do_square(aversive_dev_t* dev)
-{
-  unsigned int i;
-
-  for (i = 0; i < 4; ++i)
-  {
-    if (do_move(dev, 1000) == -1) return -1;
-    if (do_turn(dev, 90) == -1) return -1;
-  }
-
-  return 0;
-}
-
-static void do_test(void)
-{
-  lcd_string(2, 0, "do_test   ");
-
-  while (1)
-  {
-    wait_abit();
-    do_square(&aversive_device);
-  }
-}
-
-#elif CONFIG_DO_TAKEPAWN
-
-static void do_test(void)
-{
-  fsm_t fsm;
-
-  takepawn_fsm_initialize(&fsm);
-
-  while (fsm.is_done(fsm.data) == 0)
-  {
-    if (swatch_is_game_over())
-    {
-      fsm.preempt(fsm.data);
-      break ;
-    }
-
-    fsm.next(fsm.data);
-  }
-
-  /* game is over */
-#if CONFIG_ENABLE_AVERSIVE
-  aversive_stop(&aversive_device);
-  aversive_set_asserv(&aversive_device, 0);
-  aversive_set_power(&aversive_device, 0);
-#endif
-}
-
-#elif CONFIG_DO_IGREBOARD
-
-static inline char nibble_to_ascii(uint8_t value)
-{
-  if (value >= 0xa) return 'a' + value - 0xa;
-  return '0' + value;
-}
-
-static const char* uint16_to_string(uint16_t value)
-{
-  static char buf[8];
-  unsigned int i;
-
-  for (i = 0; i < 4; ++i, value >>= 4)
-    buf[4 - i - 1] = nibble_to_ascii(value & 0xf);
-  buf[i] = 0;
-
-  return buf;
-}
-
-static inline void print_uint16
-(unsigned int row, unsigned int col, uint16_t value)
-{
-  lcd_string((uint8_t)row, (uint8_t)col, uint16_to_string(value));
-}
-
-static void do_test(void)
-{
-  unsigned int led = 0;
-  unsigned int i;
-  unsigned int row, col;
-  unsigned int values[8];
-  unsigned int msecs[2];
-  unsigned int openclose = 0;
-
-  msecs[1] = swatch_get_elapsed_msecs();
-
-  while (1)
-  {
-    lcd_string(0, 0, "fubaz");
-
-#if CONFIG_ENABLE_IGREBOARD
-    can_poll_bus(igreboard_device.can_dev);
-#elif (CONFIG_ENABLE_AVERSIVE && CONFIG_USE_CAN)
-    can_poll_bus(aversive_device.can_dev);
-#endif
-
-    lcd_string(0, 0, "barfu");
-
-    /* wait for at least 1 second */
-    msecs[0] = swatch_get_elapsed_msecs();
-    if ((msecs[0] - msecs[1]) < 1000) continue ;
-    msecs[1] = msecs[0];
-
-    lcd_string(0, 0, "fubar");
-
-    /* open close gripper */
-    if ((openclose & 1) == 0)
-      igreboard_open_gripper(&igreboard_device);
-    else
-      igreboard_close_gripper(&igreboard_device);
-    openclose ^= 1;
-
-    /* read gripper switch */
-    igreboard_get_gripper_switch(&igreboard_device, &i);
-    print_uint16(6, 0, (uint16_t)i);
-
-    /* update leds */
-    igreboard_set_led(&igreboard_device, 0, led & 1);
-    igreboard_set_led(&igreboard_device, 2, led & 1);
-    led ^= 1;
-    igreboard_set_led(&igreboard_device, 1, led & 1);
-    igreboard_set_led(&igreboard_device, 3, led & 1);
-
-    /* read adcs */
-    for (i = 0; i < 8; ++i)
-    {
-      /* analog input ranges [0:2], [8:12] */
-      unsigned int translated = i;
-      if (translated > 2) translated += 5;
-
-      if (igreboard_read_adc(&igreboard_device, translated, &values[i]) == -1)
-	values[i] = (unsigned int)-1;
-    }
-
-    /* display adcs */
-    row = 0;
-    for (i = 0; i < 8; ++i)
-    {
-      col = 30;
-      if ((i & 1) == 0)
-      {
-	++row;
-	col = 0;
-      }
-
-      print_uint16(row, col, (uint16_t)values[i]);
-    }
-
-  }
-}
-
-#elif CONFIG_DO_ADC
-
-static inline char nibble_to_ascii(uint8_t value)
-{
-  if (value >= 0xa) return 'a' + value - 0xa;
-  return '0' + value;
-}
-
-static const char* uint16_to_string(uint16_t value)
-{
-  static char buf[8];
-  unsigned int i;
-
-  for (i = 0; i < 4; ++i, value >>= 4)
-    buf[4 - i - 1] = nibble_to_ascii(value & 0xf);
-  buf[i] = 0;
-
-  return buf;
-}
-
-static inline void print_uint16
-(unsigned int row, unsigned int col, uint16_t value)
-{
-  lcd_string((uint8_t)row, (uint8_t)col, uint16_to_string(value));
-}
-
-static void do_test(void)
-{
-  unsigned int values[2];
-  unsigned int i;
-  unsigned int row, col;
-  unsigned int msecs[2];
-
-  msecs[1] = swatch_get_elapsed_msecs();
-
-  while (1)
-  {
-    /* wait for at least 1 second */
-    msecs[0] = swatch_get_elapsed_msecs();
-    if ((msecs[0] - msecs[1]) < 1000) continue ;
-    msecs[1] = msecs[0];
-
-    lcd_string(0, 0, "barfu");
-    values[0] = sharp_read_fr();
-    values[1] = sharp_read_fl();
-
-    /* display adcs */
-    row = 0;
-    for (i = 0; i < 8; ++i)
-    {
-      col = 30;
-      if ((i & 1) == 0)
-      {
-	++row;
-	col = 0;
-      }
-
-      print_uint16(row, col, (uint16_t)values[i]);
-    }
-  }
-}
-
-#else
-
-static void do_test(void)
-{
-  while (1) asm("wait\n");
-}
-
-#endif /* CONFIG_DO_SQUARE */
 
 
 /* global initialization routines */
@@ -451,10 +86,6 @@ static int initialize(void)
   radar_initialize();
 #endif
 
-#if CONFIG_ENABLE_GRIPPER
-  gripper_initialize();
-#endif
-
   /* init and start the scheduler */
   sched_initialize();
 
@@ -482,7 +113,19 @@ int main(void)
     while (1) asm("wait");
   }
 
-  do_test();
+#if CONFIG_UNIT_KEYVAL
+  unit_keyval();
+#elif CONFIG_UNIT_SQUARE
+  unit_square();
+#elif CONFIG_UNIT_TAKEPAWN
+  unit_takepawn();
+#elif CONFIG_UNIT_IGREBOARD
+  unit_igreboard();
+#elif CONFIG_UNIT_ADC
+  unit_adc();
+#else
+  while (1) asm("wait\n");
+#endif
 
   finalize();
 

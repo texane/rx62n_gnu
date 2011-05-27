@@ -11,7 +11,6 @@ OBJS =				\
 	../src/hwsetup.o	\
 	../src/sched.o		\
 	../src/takepawn_fsm.o	\
-	../src/gripper.o	\
 	../src/switches.o	\
 	../src/blinker.o	\
 	../src/swatch.o		\
@@ -23,6 +22,11 @@ OBJS =				\
 	../src/can.o		\
 	../src/lcd.o		\
 	../src/font_x5x7.o	\
+	../src/unit_keyval.o	\
+	../src/unit_square.o	\
+	../src/unit_takepawn.o	\
+	../src/unit_igreboard.o	\
+	../src/unit_adc.o	\
 	../src/interrupt_table.o
 
 all : $(ELF).elf

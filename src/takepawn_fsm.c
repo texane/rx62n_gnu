@@ -1,12 +1,13 @@
 #include "fsm.h"
 #include "sharp.h"
 #include "aversive.h"
-#include "gripper.h"
+#include "igreboard.h"
 
 
 /* extern variables */
 
 extern aversive_dev_t aversive_device;
+extern igreboard_dev_t igreboard_device;
 
 
 /* take pawn finite state machine */
@@ -36,6 +37,9 @@ typedef struct takepawn_fsm
 
   /* angle */
   int alpha;
+
+  /* gripper delay */
+  unsigned int gripper_delay;
 
 } takepawn_fsm_t;
 
@@ -135,7 +139,8 @@ static void takepawn_fsm_next(void* data)
 
   case GRIP:
     {
-      gripper_close();
+      igreboard_close_gripper(&igreboard_device);
+      fsm->gripper_delay = 0;
       fsm->state = WAIT_GRIP;
       break ;
     }
@@ -154,7 +159,7 @@ static void takepawn_fsm_next(void* data)
       unsigned int is_pushed;
       int is_done;
 
-      gripper_get_switch(&is_pushed);
+      igreboard_get_gripper_switch(&igreboard_device, &is_pushed);
       aversive_is_traj_done(&aversive_device, &is_done);
 
       if (is_pushed)
@@ -173,9 +178,8 @@ static void takepawn_fsm_next(void* data)
 
   case WAIT_GRIP:
     {
-      unsigned int is_done;
-      gripper_is_done(&is_done);
-      if (is_done) fsm->state = DONE;
+      if (++fsm->gripper_delay == 10000)
+	fsm->state = DONE;
       break ;
     }
 
