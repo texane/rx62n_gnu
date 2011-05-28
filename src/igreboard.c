@@ -13,6 +13,9 @@
 #define IGREBOARD_CMD_PRINT_BUF 0x04
 #define IGREBOARD_CMD_PING_DEVICE 0x05
 #define IGREBOARD_CMD_READ_ADC 0x06
+#define IGREBOARD_CMD_GET_BACK_SWITCHES 0x07
+#define IGREBOARD_CMD_ENABLE_SONAR 0x08
+#define IGREBOARD_CMD_READ_SONAR 0x09
 #define IGREBOARD_CMD_UNKNOWN ((uint8_t)-1)
 
 
@@ -78,7 +81,6 @@ int igreboard_ping_device(igreboard_dev_t* dev)
   return send_recv_msg(dev, IGREBOARD_CMD_PING_DEVICE, values);
 }
 
-
 int igreboard_read_adc
 (igreboard_dev_t* dev, unsigned int chan, unsigned int* value)
 {
@@ -86,5 +88,41 @@ int igreboard_read_adc
   if (send_recv_msg(dev, IGREBOARD_CMD_READ_ADC, values))
     return -1;
   *value = (unsigned int)values[1];
+  return 0;
+}
+
+int igreboard_get_back_switches(igreboard_dev_t* dev, unsigned int* map)
+{
+  uint16_t values[] = { 0, 0, 0 };
+  if (send_recv_msg(dev, IGREBOARD_CMD_GET_BACK_SWITCHES, values))
+    return -1;
+  *map = (unsigned int)values[0];
+  return 0;
+}
+
+int igreboard_enable_sonar(igreboard_dev_t* dev)
+{
+  uint16_t values[] = { 1, 0, 0 };
+  if (send_recv_msg(dev, IGREBOARD_CMD_ENABLE_SONAR, values))
+    return -1;
+  return 0;
+}
+
+int igreboard_disable_sonar(igreboard_dev_t* dev)
+{
+  uint16_t values[] = { 0, 0, 0 };
+  if (send_recv_msg(dev, IGREBOARD_CMD_ENABLE_SONAR, values))
+    return -1;
+  return 0;
+}
+
+int igreboard_read_sonar
+(igreboard_dev_t* dev, unsigned int* a, unsigned int* d)
+{
+  uint16_t values[] = { 0, 0, 0 };
+  if (send_recv_msg(dev, IGREBOARD_CMD_READ_SONAR, values))
+    return -1;
+  *a = (unsigned int)values[0];
+  *d = (unsigned int)values[1];
   return 0;
 }

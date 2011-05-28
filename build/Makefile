@@ -28,6 +28,7 @@ OBJS =				\
 	../src/unit_igreboard.o	\
 	../src/unit_aversive.o	\
 	../src/unit_adc.o	\
+	../src/unit_sonar.o	\
 	../src/interrupt_table.o
 
 all : $(ELF).elf

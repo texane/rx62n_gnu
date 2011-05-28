@@ -1,9 +1,9 @@
 #include "config.h"
 #include <stdint.h>
-#if CONFIG_ENABLE_AVERSIVE
-# include "aversive.h"
-#endif
+#include "igreboard.h"
 
+
+extern igreboard_dev_t igreboard_device;
 
 
 #define RADAR_STATE_SCAN (1 << 0)
@@ -39,6 +39,12 @@ void radar_enable_scan(void)
 void radar_disable_scan(void)
 {
   state &= ~RADAR_STATE_SCAN;
+}
+
+
+void radar_read_pos(uint16_t* a, uint16_t* d)
+{
+  /* a the angle, d the distance of the nearest point */
 }
 
 
