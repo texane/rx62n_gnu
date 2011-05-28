@@ -80,6 +80,10 @@ void unit_igreboard(void)
     igreboard_set_led(&igreboard_device, 1, led & 1);
     igreboard_set_led(&igreboard_device, 3, led & 1);
 
+    /* display back switches */
+    igreboard_get_back_switches(&igreboard_device, &i);
+    print_uint16(1, 0, (uint16_t)i);
+
     /* read adcs */
     for (i = 0; i < 8; ++i)
     {
@@ -92,7 +96,7 @@ void unit_igreboard(void)
     }
 
     /* display adcs */
-    row = 0;
+    row = 1;
     for (i = 0; i < 8; ++i)
     {
       col = 30;
