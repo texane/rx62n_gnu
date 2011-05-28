@@ -46,8 +46,8 @@ void unit_adc(void)
     msecs[1] = msecs[0];
 
     lcd_string(0, 0, "barfu");
-    values[0] = sharp_read_fr();
-    values[1] = sharp_read_fl();
+    values[0] = sharp_read_fl();
+    values[1] = sharp_read_fr();
 
     /* display adcs */
     row = 0;

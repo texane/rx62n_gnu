@@ -20,9 +20,22 @@ void sharp_schedule(void);
 #define SHARP_ADC_INDEX_FR 1 /* front right */
 #define SHARP_ADC_INDEX_FM 2 /* front middle */
 
+
+#include "igreboard.h"
+
+extern igreboard_dev_t igreboard_device;
+
 static inline unsigned int sharp_read(unsigned int index)
 {
+#if 0
   return sharp_adc10_to_mm(adc_read(index));
+#else
+  unsigned int value;
+  unsigned int translated = index;
+  if (translated > 2) translated += 5;
+  igreboard_read_adc(&igreboard_device, translated, &value);
+  return sharp_adc10_to_mm(value);
+#endif
 }
 
 static inline unsigned int sharp_read_fr(void)

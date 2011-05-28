@@ -121,6 +121,8 @@ int main(void)
   unit_takepawn();
 #elif CONFIG_UNIT_IGREBOARD
   unit_igreboard();
+#elif CONFIG_UNIT_AVERSIVE
+  unit_aversive();
 #elif CONFIG_UNIT_ADC
   unit_adc();
 #else
