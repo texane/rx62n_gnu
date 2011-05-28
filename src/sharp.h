@@ -16,8 +16,9 @@ void sharp_schedule(void);
 
 /* innlined routines */
 
-#define SHARP_ADC_INDEX_FL 0
-#define SHARP_ADC_INDEX_FR 1
+#define SHARP_ADC_INDEX_FL 0 /* front left */
+#define SHARP_ADC_INDEX_FR 1 /* front right */
+#define SHARP_ADC_INDEX_FM 2 /* front middle */
 
 static inline unsigned int sharp_read(unsigned int index)
 {
@@ -34,6 +35,12 @@ static inline unsigned int sharp_read_fl(void)
 {
   /* front left */
   return sharp_read(SHARP_ADC_INDEX_FL);
+}
+
+static inline unsigned int sharp_read_fm(void)
+{
+  /* front middle */
+  return sharp_read(SHARP_ADC_INDEX_FM);
 }
 
 
