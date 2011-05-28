@@ -1265,7 +1265,7 @@ can_dev_t* can_open(void)
   static can_dev_t dev = { 0, 0, 0, 0, 0, 0 };
 
   /* already initialized */
-  if (dev.refn++) return 0;
+  if (dev.refn++) return &dev;
 
   /* initialize CAN hardware
    */

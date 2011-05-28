@@ -159,7 +159,11 @@ static void takepawn_fsm_next(void* data)
       unsigned int is_pushed;
       int is_done;
 
+#if 0 /* TODO */
       igreboard_get_gripper_switch(&igreboard_device, &is_pushed);
+#else
+      is_pushed = 0;
+#endif
       aversive_is_traj_done(&aversive_device, &is_done);
 
       if (is_pushed)

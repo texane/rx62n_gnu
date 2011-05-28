@@ -2,9 +2,11 @@
 #include <stdint.h>
 #include "lcd.h"
 #include "aversive.h"
+#include "igreboard.h"
 
 
 extern aversive_dev_t aversive_device;
+extern igreboard_dev_t igreboard_device;
 
 
 static void wait_abit(void)
@@ -61,10 +63,26 @@ static int do_move(aversive_dev_t* dev, unsigned int d)
 static int do_square(aversive_dev_t* dev)
 {
   unsigned int i;
+  unsigned int led = 0;
 
   for (i = 0; i < 4; ++i)
   {
-    if (do_move(dev, 1000) == -1) return -1;
+    /* update leds */
+    igreboard_set_led(&igreboard_device, 0, led & 1);
+    igreboard_set_led(&igreboard_device, 2, led & 1);
+    led ^= 1;
+    igreboard_set_led(&igreboard_device, 1, led & 1);
+    igreboard_set_led(&igreboard_device, 3, led & 1);
+
+    if (do_move(dev, 500) == -1) return -1;
+
+    /* update leds */
+    igreboard_set_led(&igreboard_device, 0, led & 1);
+    igreboard_set_led(&igreboard_device, 2, led & 1);
+    led ^= 1;
+    igreboard_set_led(&igreboard_device, 1, led & 1);
+    igreboard_set_led(&igreboard_device, 3, led & 1);
+
     if (do_turn(dev, 90) == -1) return -1;
   }
 

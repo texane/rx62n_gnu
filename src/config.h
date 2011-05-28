@@ -14,7 +14,7 @@
 #define CONFIG_SWATCH_MSECS 100000 /* match duration */
 #endif
 
-#define CONFIG_UNIT_SQUARE 0
+#define CONFIG_UNIT_SQUARE 1
 #define CONFIG_UNIT_KEYVAL 0
 #define CONFIG_UNIT_TAKEPAWN 0
 #define CONFIG_UNIT_IGREBOARD 1
