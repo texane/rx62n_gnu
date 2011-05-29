@@ -12,6 +12,7 @@ OBJS =				\
 	../src/sched.o		\
 	../src/fsm.o		\
 	../src/takepawn_fsm.o	\
+	../src/firstpos_fsm.o	\
 	../src/switches.o	\
 	../src/blinker.o	\
 	../src/swatch.o		\

@@ -21,6 +21,7 @@ void fsm_main(fsm_t*);
 
 /* xxx_fsm factory */
 void takepawn_fsm_initialize(fsm_t*);
+void firstpos_fsm_initialize(fsm_t*);
 
 
 #endif /* ! FSM_H_INCLUDED */
