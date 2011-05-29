@@ -93,6 +93,8 @@ int igreboard_read_adc
 
 int igreboard_get_back_switches(igreboard_dev_t* dev, unsigned int* map)
 {
+  /* format: right << 1 | left */
+
   uint16_t values[] = { 0, 0, 0 };
   if (send_recv_msg(dev, IGREBOARD_CMD_GET_BACK_SWITCHES, values))
     return -1;

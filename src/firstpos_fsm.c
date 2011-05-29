@@ -1,11 +1,13 @@
 #include "config.h"
 #include <stdint.h>
 #include "aversive.h"
+#include "igreboard.h"
 #include "swatch.h"
 #include "fsm.h"
 
 
 extern aversive_dev_t aversive_device;
+extern igreboard_dev_t igreboard_device;
 
 
 enum firstpos_state
@@ -49,6 +51,7 @@ static void firstpos_fsm_next(void* data)
 {
   firstpos_fsm_t* const fsm = data;
   unsigned int msecs;
+  unsigned int map;
   int16_t posa;
   int16_t posx;
   int16_t posy;
@@ -59,20 +62,20 @@ static void firstpos_fsm_next(void* data)
   switch (fsm->state)
   {
   case INIT:
-    aversive_set_speed(&aversive_device, 50, 50);
+    /* aversive_set_speed(&aversive_device, 500, 500); */
     fsm->state = MOVE_BACK_0;
     break ;
 
   case MOVE_BACK_0:
-    aversive_move_forward_s(&aversive_device, -100);
+    aversive_move_forward(&aversive_device, -100);
     fsm->msecs = swatch_get_msecs();
     fsm->state = WAIT_MSECS_THEN_BLOCK;
     fsm->next_state = MOVE_FRONT_0;
     break ;
 
   case MOVE_FRONT_0:
-    aversive_set_pos(&aversive_device, 0, 0, 0);
-    aversive_move_forward_s(&aversive_device, 100);
+    aversive_set_pos(&aversive_device, 0, 97, 0);
+    aversive_move_forward(&aversive_device, 100);
     fsm->next_state = TURN_0;
     fsm->state = WAIT_TRAJ;
     break ;
@@ -84,7 +87,7 @@ static void firstpos_fsm_next(void* data)
     break ;
 
   case MOVE_BACK_1:
-    aversive_move_forward_s(&aversive_device, -100);
+    aversive_move_forward(&aversive_device, -100);
     fsm->msecs = swatch_get_msecs();
     fsm->state = WAIT_MSECS_THEN_BLOCK;
     fsm->next_state = MOVE_FRONT_1;
@@ -92,7 +95,7 @@ static void firstpos_fsm_next(void* data)
 
   case MOVE_FRONT_1:
     aversive_get_pos(&aversive_device, &posa, &posx, &posy);
-    aversive_set_pos(&aversive_device, posa, posx, 100);
+    aversive_set_pos(&aversive_device, posa, posx, 160);
     aversive_move_forward(&aversive_device, 100);
     fsm->next_state = TURN_1;
     fsm->state = WAIT_TRAJ;
@@ -105,12 +108,11 @@ static void firstpos_fsm_next(void* data)
     break ;
 
   case WAIT_MSECS_THEN_BLOCK:
-    /* wait for 1000 msecs */
-
+    /* wait for 1 msecs */
     msecs = swatch_get_msecs();
     if ((msecs - fsm->msecs) < 1000) break ;
-
     fsm->msecs = msecs;
+
     aversive_get_pos(&aversive_device, &posa, &fsm->posx, &fsm->posy);
     fsm->state = WAIT_BLOCK;
 
@@ -118,7 +120,6 @@ static void firstpos_fsm_next(void* data)
 
   case WAIT_BLOCK:
     /* poll every 300 ms */
-
     msecs = swatch_get_msecs();
     if ((msecs - fsm->msecs) < 300) break ;
     fsm->msecs = msecs;
@@ -126,6 +127,9 @@ static void firstpos_fsm_next(void* data)
     posx = fsm->posx;
     posy = fsm->posy;
     aversive_get_pos(&aversive_device, &posa, &fsm->posx, &fsm->posy);
+
+    igreboard_get_back_switches(&igreboard_device, &map);
+    if (map) goto on_blocked;
 
     dx = fsm->posx - posx;
     if (posx > fsm->posx) dx = posx - fsm->posx;
@@ -136,6 +140,7 @@ static void firstpos_fsm_next(void* data)
     /* consider 10mm as blocked */
     if ((dx + dy) >= 10) break ;
 
+  on_blocked:
     aversive_stop(&aversive_device);
     fsm->state = fsm->next_state;
 

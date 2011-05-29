@@ -3,6 +3,8 @@
  . avoidadvers_fsm, then put in fsm_main
  . sonar: set minimum distance in sonar_schedule
 
+==> setter la position lors du recalage!
+
 . tests
  . unit_sonar
  . unit_firstpos:

@@ -105,7 +105,6 @@ int aversive_open(aversive_dev_t* dev)
 
 #if (CONFIG_DO_ADC == 0)
 #if (CONFIG_DO_KEYVAL == 0)
-#if (CONFIG_DO_IGREBOARD == 0)
 
   /* send the following to initialize aversive
    */
@@ -120,7 +119,6 @@ int aversive_open(aversive_dev_t* dev)
   aversive_set_blocking_params(dev, 5, 300, 8000);
   aversive_set_blocking_params2(dev, 150, 150);
 
-#endif /* CONFIG_DO_IGREBOARD == 0 */
 #endif /* CONFIG_DO_KEYVAL == 0 */
 #endif /* CONFIG_DO_ADC == 0 */
 
