@@ -21,8 +21,8 @@
 # include "blinker.h"
 #endif
 
-#if CONFIG_ENABLE_RADAR
-# include "radar.h"
+#if CONFIG_ENABLE_SONAR
+# include "sonar.h"
 #endif
 
 #if CONFIG_ENABLE_SHARP
@@ -82,8 +82,8 @@ static int initialize(void)
   swatch_initialize();
 #endif
 
-#if CONFIG_ENABLE_RADAR
-  radar_initialize();
+#if CONFIG_ENABLE_SONAR
+  sonar_initialize();
 #endif
 
   /* init and start the scheduler */
@@ -151,7 +151,7 @@ void tick_isr(void)
   swatch_schedule();
 #endif
 
-#if CONFIG_ENABLE_RADAR
-  radar_schedule();
+#if CONFIG_ENABLE_SONAR
+  sonar_schedule();
 #endif
 }

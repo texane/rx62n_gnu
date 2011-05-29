@@ -117,12 +117,12 @@ int igreboard_disable_sonar(igreboard_dev_t* dev)
 }
 
 int igreboard_read_sonar
-(igreboard_dev_t* dev, unsigned int* a, unsigned int* d)
+(igreboard_dev_t* dev, unsigned int* o, unsigned int* d)
 {
   uint16_t values[] = { 0, 0, 0 };
   if (send_recv_msg(dev, IGREBOARD_CMD_READ_SONAR, values))
     return -1;
-  *a = (unsigned int)values[0];
+  *o = (unsigned int)values[0];
   *d = (unsigned int)values[1];
   return 0;
 }

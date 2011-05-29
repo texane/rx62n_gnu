@@ -14,7 +14,7 @@ OBJS =				\
 	../src/switches.o	\
 	../src/blinker.o	\
 	../src/swatch.o		\
-	../src/radar.o		\
+	../src/sonar.o		\
 	../src/adc.o		\
 	../src/sharp.o		\
 	../src/aversive.o	\

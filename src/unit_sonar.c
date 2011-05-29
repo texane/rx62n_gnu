@@ -35,10 +35,12 @@ static inline void print_uint16
 void unit_sonar(void)
 {
   unsigned int msecs[2];
-  unsigned int a;
+  unsigned int o;
   unsigned int d;
 
   msecs[1] = swatch_get_elapsed_msecs();
+
+  igreboard_enable_sonar(&igreboard_device);
 
   while (1)
   {
@@ -49,9 +51,11 @@ void unit_sonar(void)
     if ((msecs[0] - msecs[1]) < 1000) continue ;
     msecs[1] = msecs[0];
 
-    igreboard_read_sonar(&igreboard_device, &a, &d);
+    igreboard_read_sonar(&igreboard_device, &o, &d);
 
-    print_uint16(4, 0, (uint16_t)a);
+    print_uint16(4, 0, (uint16_t)o);
     print_uint16(4, 30, (uint16_t)d);
   }
+
+  igreboard_disable_sonar(&igreboard_device);
 }
