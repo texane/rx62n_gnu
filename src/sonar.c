@@ -43,15 +43,20 @@ void sonar_disable_scan(void)
 
 void sonar_schedule(void)
 {
-#if 0 /* not implemented */
+  /* CONFIG_TIMER_FREQ, 100ms */
 
-#define CONFIG_SONAR_BLOCK_TICKS
+  static unsigned int pass = 0;
 
-  if (state & SONAR_STATE_BLOCKED)
-  {
-    ++blocked_ticks;
-    if (blocked_ticks >= )
-  }
+  unsigned int o;
+  unsigned int d;
 
+  /* prescaler == 4 */
+  if ((++pass) & (4 - 1)) return ;
+
+  if (igreboard_read_sonar(&igreboard_device, &o, &d) == -1)
+    return ;
+
+#if 0 /* TODO */
+  /* if (d <= 300) ... */
 #endif
 }
