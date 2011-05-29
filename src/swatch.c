@@ -4,16 +4,11 @@
 
 
 static volatile uint32_t counter __attribute__((aligned));
-
-
-void swatch_reset(void)
-{
-  counter = 0;
-}
+static uint32_t start_msecs = (uint32_t)-1;
 
 void swatch_initialize(void)
 {
-  swatch_reset();
+  counter = 0;
 }
 
 void swatch_schedule(void)
@@ -26,7 +21,19 @@ unsigned int swatch_get_msecs(void)
   return (counter * 1000) / CONFIG_TIMER_FREQ;
 }
 
+
+unsigned int swatch_get_game_msecs(void)
+{
+  if (start_msecs == (uint32_t)-1) return 0;
+  return swatch_get_msecs() - start_msecs;
+}
+
 unsigned int swatch_is_game_over(void)
 {
-  return swatch_get_msecs() >= CONFIG_SWATCH_MSECS;
+  return swatch_get_game_msecs() >= CONFIG_SWATCH_MSECS;
+}
+
+void swatch_start_game(void)
+{
+  start_msecs = swatch_get_msecs();
 }

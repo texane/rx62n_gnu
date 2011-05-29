@@ -1,9 +1,8 @@
 . todo
  . set robot center in firstpos_fsm
+  -> faire une serie de tests pour voir si le positionnement absolu fonctionne
  . avoidadvers_fsm, then put in fsm_main
  . sonar: set minimum distance in sonar_schedule
-
-==> setter la position lors du recalage!
 
 . tests
  . unit_sonar
