@@ -6,57 +6,44 @@
 extern igreboard_dev_t igreboard_device;
 
 
-#define SONAR_STATE_SCAN (1 << 0)
-#define SONAR_STATE_BLOCK (1 << 1)
-static volatile uint32_t state;
-
-static volatile uint32_t blocked_ticks;
+/* last read values */
+static volatile unsigned int is_detected = 0;
 
 
 void sonar_initialize(void)
 {
-#if 0 /* not implemented */
-  state = SONAR_STATE_SCAN;
-  blocked_count = 0;
-#endif
+  igreboard_enable_sonar(&igreboard_device);
+  is_detected = 0;
 }
 
 
-void sonar_enable_block(void)
+void sonar_finalize(void)
 {
+  igreboard_disable_sonar(&igreboard_device);
 }
 
 
-void sonar_disable_block(void)
+unsigned int sonar_is_detected(void)
 {
+  return is_detected;
 }
 
-void sonar_enable_scan(void)
-{
-  state |= SONAR_STATE_SCAN;
-}
-
-void sonar_disable_scan(void)
-{
-  state &= ~SONAR_STATE_SCAN;
-}
 
 void sonar_schedule(void)
 {
-  /* CONFIG_TIMER_FREQ, 100ms */
+  /* CONFIG_TIMER_FREQ, 200ms */
 
   static unsigned int pass = 0;
 
   unsigned int o;
   unsigned int d;
 
-  /* prescaler == 4 */
-  if ((++pass) & (4 - 1)) return ;
+  /* prescaler == 2 */
+  if ((++pass) & (2 - 1)) return ;
 
   if (igreboard_read_sonar(&igreboard_device, &o, &d) == -1)
     return ;
 
-#if 0 /* TODO */
-  /* if (d <= 300) ... */
-#endif
+  if (d <= 300) is_detected = 1;
+  else is_detected = 0;
 }

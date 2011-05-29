@@ -1,10 +1,11 @@
 . todo
- . swatch
+ . set robot center in firstpos_fsm
+ . avoidadvers_fsm, then put in fsm_main
+ . sonar: set minimum distance in sonar_schedule
 
 . tests
- . unit_firstpos
- . balise
- . firstpos, robot center
+ . unit_sonar
+ . unit_firstpos:
 
 
 [!] poller le bus can regulierement avant le scheduling des automate

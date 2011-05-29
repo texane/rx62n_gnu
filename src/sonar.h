@@ -6,8 +6,8 @@
 
 
 void sonar_initialize(void);
-void sonar_enable(void);
-void sonar_disable(void);
+void sonar_finalize(void);
+unsigned int sonar_is_detected(void);
 void sonar_schedule(void);
 
 

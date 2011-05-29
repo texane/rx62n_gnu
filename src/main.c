@@ -94,6 +94,10 @@ static int initialize(void)
 
 static void finalize(void)
 {
+#if CONFIG_ENABLE_SONAR
+  sonar_finalize();
+#endif
+
 #if CONFIG_ENABLE_AVERSIVE
   aversive_close(&aversive_device);
 #endif

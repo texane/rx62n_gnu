@@ -8,11 +8,7 @@
 #define CONFIG_PCLK_FREQ 48000000 /* in hertz */
 #define CONFIG_TIMER_FREQ 10 /* in hertz */
 
-#if 0
 #define CONFIG_SWATCH_MSECS 90000 /* match duration */
-#else
-#define CONFIG_SWATCH_MSECS 100000 /* match duration */
-#endif
 
 #define CONFIG_UNIT_SQUARE 0
 #define CONFIG_UNIT_KEYVAL 0
