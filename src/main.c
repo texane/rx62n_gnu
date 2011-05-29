@@ -119,12 +119,16 @@ int main(void)
   unit_square();
 #elif CONFIG_UNIT_TAKEPAWN
   unit_takepawn();
+#elif CONFIG_UNIT_FIRSTPOS
+  unit_firstpos();
 #elif CONFIG_UNIT_IGREBOARD
   unit_igreboard();
 #elif CONFIG_UNIT_AVERSIVE
   unit_aversive();
 #elif CONFIG_UNIT_ADC
   unit_adc();
+#elif CONFIG_UNIT_SONAR
+  unit_sonar();
 #else
   while (1) asm("wait\n");
 #endif

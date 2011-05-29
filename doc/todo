@@ -1,13 +1,13 @@
+.
+. unit_firstpos
+
+. tests
+ . balise
+ . firstpos, robot center
+
+
 [!] poller le bus can regulierement avant le scheduling des automate
  -> aversive_poll_bus()
-
-. can_device_t -> aversive, igreboard
- -> currently, igreboard depends on aversive
-
-. commonize communication structures
- . homogeneize, should only use can_msg3
-
-. degager les test unitaires de rx62n
 
 . actuellement, pas de filtrage des message sur le bus
  -> 2 devices vont repondre au meme message, possiblement un avec erreur l autre sans...

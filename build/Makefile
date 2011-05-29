@@ -27,6 +27,7 @@ OBJS =				\
 	../src/unit_keyval.o	\
 	../src/unit_square.o	\
 	../src/unit_takepawn.o	\
+	../src/unit_firstpos.o	\
 	../src/unit_igreboard.o	\
 	../src/unit_aversive.o	\
 	../src/unit_adc.o	\

@@ -23,6 +23,12 @@ void swatch_schedule(void)
   --countdown;
 }
 
+unsigned int swatch_get_msecs(void)
+{
+  /* TODO */
+  return 0;
+}
+
 unsigned int swatch_get_elapsed_msecs(void)
 {
   return ((CONFIG_SWATCH_MSECS - countdown) * 1000) / CONFIG_TIMER_FREQ;
