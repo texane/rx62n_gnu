@@ -11,8 +11,10 @@ OBJS =				\
 	../src/hwsetup.o	\
 	../src/sched.o		\
 	../src/fsm.o		\
+	../src/default_fsm.o	\
 	../src/takepawn_fsm.o	\
 	../src/firstpos_fsm.o	\
+	../src/cord_fsm.o	\
 	../src/switches.o	\
 	../src/blinker.o	\
 	../src/swatch.o		\

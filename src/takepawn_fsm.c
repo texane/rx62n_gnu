@@ -246,25 +246,15 @@ static void takepawn_fsm_next(void* data)
 }
 
 
-static void takepawn_fsm_preempt(void* data)
-{}
-
-
-static void takepawn_fsm_restart(void* data)
-{}
-
 /* exported */
 
 void takepawn_fsm_initialize(fsm_t* fsm)
 {
   static takepawn_fsm_t data;
 
-  igreboard_close_gripper(&igreboard_device);
-
+  default_fsm_initialize(fsm);
   fsm->next = takepawn_fsm_next;
   fsm->is_done = takepawn_fsm_isdone;
-  fsm->preempt = takepawn_fsm_preempt;
-  fsm->restart = takepawn_fsm_restart;
 
   data.state = SEARCH;
   data.prev_state = SEARCH;

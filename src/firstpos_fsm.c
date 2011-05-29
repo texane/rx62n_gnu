@@ -158,29 +158,15 @@ static void firstpos_fsm_next(void* data)
   }
 }
 
-
-static void firstpos_fsm_preempt(void* data)
-{
-  /* firstpos_fsm_t* const fsm = data; */
-}
-
-
-static void firstpos_fsm_restart(void* data)
-{
-  /* firstpos_fsm_t* const fsm = data; */
-}
-
-
 /* exported */
 
 void firstpos_fsm_initialize(fsm_t* fsm)
 {
   static firstpos_fsm_t data;
 
+  default_fsm_initialize(fsm);
   fsm->next = firstpos_fsm_next;
   fsm->is_done = firstpos_fsm_isdone;
-  fsm->preempt = firstpos_fsm_preempt;
-  fsm->restart = firstpos_fsm_restart;
 
   data.state = INIT;
 
