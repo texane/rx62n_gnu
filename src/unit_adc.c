@@ -36,12 +36,12 @@ void unit_adc(void)
   unsigned int row, col;
   unsigned int msecs[2];
 
-  msecs[1] = swatch_get_elapsed_msecs();
+  msecs[1] = swatch_get_msecs();
 
   while (1)
   {
     /* wait for at least 1 second */
-    msecs[0] = swatch_get_elapsed_msecs();
+    msecs[0] = swatch_get_msecs();
     if ((msecs[0] - msecs[1]) < 1000) continue ;
     msecs[1] = msecs[0];
 

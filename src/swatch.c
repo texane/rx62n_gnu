@@ -3,38 +3,30 @@
 #include "lcd.h"
 
 
-static volatile uint32_t countdown __attribute__((aligned));
+static volatile uint32_t counter __attribute__((aligned));
 
+
+void swatch_reset(void)
+{
+  counter = 0;
+}
 
 void swatch_initialize(void)
 {
-  countdown = (CONFIG_SWATCH_MSECS * CONFIG_TIMER_FREQ) / 1000;
+  swatch_reset();
 }
 
 void swatch_schedule(void)
 {
-  if (countdown == 0)
-  {
-    /* TODO */
-    lcd_string(5, 0, "game_is_over");
-    return ;
-  }
-
-  --countdown;
+  ++counter;
 }
 
 unsigned int swatch_get_msecs(void)
 {
-  /* TODO */
-  return 0;
-}
-
-unsigned int swatch_get_elapsed_msecs(void)
-{
-  return ((CONFIG_SWATCH_MSECS - countdown) * 1000) / CONFIG_TIMER_FREQ;
+  return (counter * 1000) / CONFIG_TIMER_FREQ;
 }
 
 unsigned int swatch_is_game_over(void)
 {
-  return countdown == 0;
+  return swatch_get_msecs() >= CONFIG_SWATCH_MSECS;
 }

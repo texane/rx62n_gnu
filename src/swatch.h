@@ -4,8 +4,8 @@
 
 void swatch_initialize(void);
 void swatch_schedule(void);
+void swatch_reset(void);
 unsigned int swatch_get_msecs(void);
-unsigned int swatch_get_elapsed_msecs(void);
 unsigned int swatch_is_game_over(void);
 
 

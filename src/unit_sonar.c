@@ -38,7 +38,7 @@ void unit_sonar(void)
   unsigned int o;
   unsigned int d;
 
-  msecs[1] = swatch_get_elapsed_msecs();
+  msecs[1] = swatch_get_msecs();
 
   igreboard_enable_sonar(&igreboard_device);
 
@@ -47,7 +47,7 @@ void unit_sonar(void)
     can_poll_bus(igreboard_device.can_dev);
 
     /* wait for at least 1 second */
-    msecs[0] = swatch_get_elapsed_msecs();
+    msecs[0] = swatch_get_msecs();
     if ((msecs[0] - msecs[1]) < 1000) continue ;
     msecs[1] = msecs[0];
 
