@@ -16,7 +16,10 @@ typedef struct fsm
 } fsm_t;
 
 
-/* factory */
+/* fsm scheduler */
+void fsm_main(fsm_t*);
+
+/* xxx_fsm factory */
 void takepawn_fsm_initialize(fsm_t*);
 
 

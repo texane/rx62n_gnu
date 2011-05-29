@@ -10,6 +10,7 @@ OBJS =				\
 	../src/main.o		\
 	../src/hwsetup.o	\
 	../src/sched.o		\
+	../src/fsm.o		\
 	../src/takepawn_fsm.o	\
 	../src/switches.o	\
 	../src/blinker.o	\
