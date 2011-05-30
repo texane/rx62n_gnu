@@ -129,14 +129,14 @@ int igreboard_read_sonar
   return 0;
 }
 
-int igreboad_get_cord_switch
+int igreboard_get_cord_switch
 (igreboard_dev_t* dev, unsigned int* value)
 {
   *value = 0;
   return 0;
 }
 
-int igreboad_get_color_switch
+int igreboard_get_color_switch
 (igreboard_dev_t* dev, unsigned int* value)
 {
   *value = 0;

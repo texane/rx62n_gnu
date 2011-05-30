@@ -36,6 +36,7 @@ OBJS =				\
 	../src/unit_aversive.o	\
 	../src/unit_adc.o	\
 	../src/unit_sonar.o	\
+	../src/unit_sensor.o	\
 	../src/interrupt_table.o
 
 all : $(ELF).elf

@@ -133,6 +133,8 @@ int main(void)
   unit_adc();
 #elif CONFIG_UNIT_SONAR
   unit_sonar();
+#elif CONFIG_UNIT_SENSOR
+  unit_sensor();
 #else
   while (1) asm("wait\n");
 #endif
