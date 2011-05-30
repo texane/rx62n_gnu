@@ -56,5 +56,47 @@ static inline unsigned int sharp_read_fm(void)
   return sharp_read(SHARP_ADC_INDEX_FM);
 }
 
+static inline unsigned int sharp_read_lh(void)
+{
+  /* left high */
+  return 0;
+}
+
+static inline unsigned int sharp_read_lb(void)
+{
+  /* left back */
+  return 0;
+}
+
+static inline unsigned int sharp_read_lf(void)
+{
+  /* left front */
+  return 0;
+}
+
+static inline unsigned int sharp_read_rh(void)
+{
+  /* right high */
+  return 0;
+}
+
+static inline unsigned int sharp_read_rb(void)
+{
+  /* right back */
+  return 0;
+}
+
+static inline unsigned int sharp_read_rf(void)
+{
+  /* right front */
+  return 0;
+}
+
+static inline unsigned int sharp_read_b(void)
+{
+  /* back */
+  return 0;
+}
+
 
 #endif /* ! SHARP_H_INCLUDED */
