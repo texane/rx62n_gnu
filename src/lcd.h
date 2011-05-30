@@ -21,7 +21,7 @@ void lcd_string(uint8_t yy, uint8_t xx, const char *str);
 void lcd_display_char(char c);
 void lcd_display_number(int number);
 void lcd_display_number_w_decimal(int number, int decimal_place);
-
+void lcd_uint16(uint8_t yy, uint8_t xx, uint16_t);
 
 #endif /* __LCD_H */
  

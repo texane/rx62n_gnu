@@ -164,3 +164,28 @@ void lcd_display_number_w_decimal(int number, int decimal_place)
 }
 
 
+/* lcd_uint16 */
+
+static inline char nibble_to_ascii(uint8_t value)
+{
+  if (value >= 0xa) return 'a' + value - 0xa;
+  return '0' + value;
+}
+
+static const char* uint16_to_string(uint16_t value)
+{
+  static char buf[8];
+  unsigned int i;
+
+  for (i = 0; i < 4; ++i, value >>= 4)
+    buf[4 - i - 1] = nibble_to_ascii(value & 0xf);
+  buf[i] = 0;
+
+  return buf;
+}
+
+void lcd_uint16
+(uint8_t yy, uint8_t xx, uint16_t value)
+{
+  lcd_string(yy, xx, uint16_to_string(value));
+}

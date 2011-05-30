@@ -8,30 +8,6 @@
 extern igreboard_dev_t igreboard_device;
 
 
-static inline char nibble_to_ascii(uint8_t value)
-{
-  if (value >= 0xa) return 'a' + value - 0xa;
-  return '0' + value;
-}
-
-static const char* uint16_to_string(uint16_t value)
-{
-  static char buf[8];
-  unsigned int i;
-
-  for (i = 0; i < 4; ++i, value >>= 4)
-    buf[4 - i - 1] = nibble_to_ascii(value & 0xf);
-  buf[i] = 0;
-
-  return buf;
-}
-
-static inline void print_uint16
-(unsigned int row, unsigned int col, uint16_t value)
-{
-  lcd_string((uint8_t)row, (uint8_t)col, uint16_to_string(value));
-}
-
 void unit_igreboard(void)
 {
   unsigned int led = 0;
@@ -71,7 +47,7 @@ void unit_igreboard(void)
 
     /* read gripper switch */
     igreboard_get_gripper_switch(&igreboard_device, &i);
-    print_uint16(6, 0, (uint16_t)i);
+    lcd_uint16(6, 0, (uint16_t)i);
 
     /* update leds */
     igreboard_set_led(&igreboard_device, 0, led & 1);
@@ -82,7 +58,7 @@ void unit_igreboard(void)
 
     /* display back switches */
     igreboard_get_back_switches(&igreboard_device, &i);
-    print_uint16(1, 0, (uint16_t)i);
+    lcd_uint16(1, 0, (uint16_t)i);
 
     /* read adcs */
     for (i = 0; i < 8; ++i)
@@ -106,7 +82,7 @@ void unit_igreboard(void)
 	col = 0;
       }
 
-      print_uint16(row, col, (uint16_t)values[i]);
+      lcd_uint16((uint8_t)row, (uint8_t)col, (uint16_t)values[i]);
     }
 
   }

@@ -10,35 +10,6 @@ void sharp_initialize_all(void)
 }
 
 
-/* toremove */
-
-#include "lcd.h"
-
-static inline char nibble_to_ascii(uint8_t value)
-{
-  if (value >= 0xa) return 'a' + value - 0xa;
-  return '0' + value;
-}
-
-static const char* uint16_to_string(uint16_t value)
-{
-  static char buf[8];
-  unsigned int i;
-
-  for (i = 0; i < 4; ++i, value >>= 4)
-    buf[4 - i - 1] = nibble_to_ascii(value & 0xf);
-  buf[i] = 0;
-
-  return buf;
-}
-
-static inline void print_uint16
-(unsigned int row, unsigned int col, uint16_t value)
-{
-  lcd_string(row, col, uint16_to_string(value));
-}
-
-
 unsigned int sharp_adc10_to_mm(uint16_t v)
 {
   /* find the voltage <= to v and return the distance, in mm */
@@ -104,12 +75,12 @@ void sharp_schedule(void)
       if (chan == 1)
       {
 	lcd_string(6, 0, "adc ");
-	print_uint16(6, 30, values[0]);
-	print_uint16(6, 60, values[1]);
+	lcd_uint16(6, 30, values[0]);
+	lcd_uint16(6, 60, values[1]);
 
 	lcd_string(7, 0, "mm  ");
-	print_uint16(7, 30, sharp_adc10_to_mm(values[0]));
-	print_uint16(7, 60, sharp_adc10_to_mm(values[1]));
+	lcd_uint16(7, 30, sharp_adc10_to_mm(values[0]));
+	lcd_uint16(7, 60, sharp_adc10_to_mm(values[1]));
       }
 
       chan = (chan + 1) & 1;

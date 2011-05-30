@@ -56,30 +56,6 @@ static inline unsigned int min(unsigned int a, unsigned int b)
   return a < b ? a : b;
 }
 
-static inline char nibble_to_ascii(uint8_t value)
-{
-  if (value >= 0xa) return 'a' + value - 0xa;
-  return '0' + value;
-}
-
-static const char* uint16_to_string(uint16_t value)
-{
-  static char buf[8];
-  unsigned int i;
-
-  for (i = 0; i < 4; ++i, value >>= 4)
-    buf[4 - i - 1] = nibble_to_ascii(value & 0xf);
-  buf[i] = 0;
-
-  return buf;
-}
-
-static inline void print_uint16
-(unsigned int row, unsigned int col, uint16_t value)
-{
-  lcd_string((uint8_t)row, (uint8_t)col, uint16_to_string(value));
-}
-
 static void takepawn_fsm_next(void* data)
 {
   takepawn_fsm_t* const fsm = data;
@@ -94,8 +70,8 @@ static void takepawn_fsm_next(void* data)
       fsm->fl = sharp_read_fl();
       fsm->fr = sharp_read_fr();
 
-      print_uint16(4, 0, (uint16_t)fsm->fl);
-      print_uint16(4, 30, (uint16_t)fsm->fr);
+      lcd_uint16(4, 0, (uint16_t)fsm->fl);
+      lcd_uint16(4, 30, (uint16_t)fsm->fr);
 
 #define PAWN_DIST 200
       if (min(fsm->fl, fsm->fr) < PAWN_DIST)
@@ -122,8 +98,8 @@ static void takepawn_fsm_next(void* data)
       fsm->fl = sharp_read_fl();
       fsm->fr = sharp_read_fr();
 
-      print_uint16(4, 0, (uint16_t)fsm->fl);
-      print_uint16(4, 30, (uint16_t)fsm->fr);
+      lcd_uint16(4, 0, (uint16_t)fsm->fl);
+      lcd_uint16(4, 30, (uint16_t)fsm->fr);
 
       if (fsm->fl > fsm->fr) d = fsm->fl - fsm->fr;
       else d = fsm->fr - fsm->fl;
