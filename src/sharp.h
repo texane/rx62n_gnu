@@ -19,6 +19,8 @@ void sharp_schedule(void);
 #define SHARP_ADC_INDEX_FL 0 /* front left */
 #define SHARP_ADC_INDEX_FR 1 /* front right */
 #define SHARP_ADC_INDEX_FM 2 /* front middle */
+#define SHARP_ADC_INDEX_LB 11 /* left back */
+#define SHARP_ADC_INDEX_LF 12 /* left front */
 
 
 #include "igreboard.h"
@@ -27,13 +29,17 @@ extern igreboard_dev_t igreboard_device;
 
 static inline unsigned int sharp_read(unsigned int index)
 {
-#if 0
+#if 0 /* local adc */
   return sharp_adc10_to_mm(adc_read(index));
-#else
+#else /* igreboard adc */
   unsigned int value;
+#if 0 /* non transnlated */
   unsigned int translated = index;
   if (translated > 2) translated += 5;
   igreboard_read_adc(&igreboard_device, translated, &value);
+#else
+  igreboard_read_adc(&igreboard_device, index, &value);
+#endif
   return sharp_adc10_to_mm(value);
 #endif
 }
@@ -59,30 +65,33 @@ static inline unsigned int sharp_read_fm(void)
 static inline unsigned int sharp_read_lh(void)
 {
   /* left high */
+  /* return sharp_read(8); */
   return 0;
 }
 
 static inline unsigned int sharp_read_lb(void)
 {
-  /* left back */
-  return 0;
+  /* left back, rb11 */
+  return sharp_read(SHARP_ADC_INDEX_LB);
 }
 
 static inline unsigned int sharp_read_lf(void)
 {
-  /* left front */
-  return 0;
+  /* left front, rb12 */
+  return sharp_read(SHARP_ADC_INDEX_LF);
 }
 
 static inline unsigned int sharp_read_rh(void)
 {
   /* right high */
+/*   return sharp_read(9); */
   return 0;
 }
 
 static inline unsigned int sharp_read_rb(void)
 {
   /* right back */
+  return sharp_read(10);
   return 0;
 }
 
