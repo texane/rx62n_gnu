@@ -1,0 +1,32 @@
+#ifndef CONFIG_H_INCLUDED
+# define CONFIG_H_INCLUDED
+
+
+/* global static configuration */
+
+#define CONFIG_CPU_FREQ 96000000 /* in hertz */
+#define CONFIG_PCLK_FREQ 48000000 /* in hertz */
+#define CONFIG_TIMER_FREQ 10 /* in hertz */
+
+#define CONFIG_SWATCH_MSECS 90000 /* match duration */
+
+#define CONFIG_UNIT_SQUARE 0
+#define CONFIG_UNIT_KEYVAL 0
+#define CONFIG_UNIT_TAKEPAWN 0
+#define CONFIG_UNIT_FIRSTPOS 1
+#define CONFIG_UNIT_IGREBOARD 0
+#define CONFIG_UNIT_AVERSIVE 0
+#define CONFIG_UNIT_ADC 0
+#define CONFIG_UNIT_SONAR 0
+#define CONFIG_UNIT_MATCH 0
+
+#define CONFIG_ENABLE_AVERSIVE 0
+#define CONFIG_ENABLE_IGREBOARD 0
+#define CONFIG_ENABLE_SHARP 0
+#define CONFIG_ENABLE_SWITCHES 0
+#define CONFIG_ENABLE_SONAR 0
+#define CONFIG_ENABLE_BLINKER 0
+#define CONFIG_ENABLE_SWATCH 0
+
+
+#endif /* CONFIG_H_INCLUDED  */

@@ -1,14 +1,18 @@
 #include "config.h"
 #include "fsm.h"
-#include "swatch.h"
-#include "aversive.h"
+
+#if CONFIG_ENABLE_SWATCH
+# include "swatch.h"
+#endif
+
+#if CONFIG_ENABLE_AVERSIVE
+# include "aversive.h"
+extern aversive_dev_t aversive_device;
+#endif
 
 #if CONFIG_ENABLE_SONAR
 # include "sonar.h"
 #endif
-
-
-extern aversive_dev_t aversive_device;
 
 
 /* stack interface */
@@ -52,16 +56,20 @@ void fsm_execute_all(void)
     }
 #endif /* CONFIG_ENABLE_SONAR */
 
+#if CONFIG_ENABLE_SWATCH
     if (swatch_is_game_over())
     {
       fsm->preempt(fsm->data);
 
+#if CONFIG_ENABLE_AVERSIVE
       aversive_stop(&aversive_device);
       aversive_set_asserv(&aversive_device, 0);
       aversive_set_power(&aversive_device, 0);
+#endif /* CONFIG_ENABLE_AVERSIVE */
 
       break ;
     }
+#endif /* CONFIG_ENABLE_SWATCH */
 
     if (fsm->is_done(fsm->data))
     {
