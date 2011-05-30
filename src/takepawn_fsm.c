@@ -2,6 +2,7 @@
 #include "sharp.h"
 #include "aversive.h"
 #include "igreboard.h"
+#include "swatch.h"
 #include "lcd.h"
 
 
@@ -18,18 +19,21 @@ typedef struct takepawn_fsm
   /* current state */
   enum
   {
-    SEARCH = 0,
+    INIT = 0,
+    OPEN_GRIPPER,
+    SEARCH,
     CENTER,
     MOVE,
-    SWITCH,
-    GRIP,
+    GRIPPER_SWITCH,
+    CLOSE_GRIPPER,
     WAIT_TRAJ,
-    WAIT_TRAJ_OR_SWITCH,
-    WAIT_GRIP,
+    WAIT_TRAJ_OR_GRIPPER_SWITCH,
+    WAIT_GRIPPER,
+    FAILED,
     DONE
   } state;
 
-  /* store the previous state */
+  /* store the previous or next state */
   unsigned int prev_state;
 
   /* front left, right sharps */
@@ -39,8 +43,11 @@ typedef struct takepawn_fsm
   /* angle */
   int alpha;
 
-  /* gripper delay */
-  unsigned int gripper_delay;
+  /* track time from last operation */
+  unsigned int msecs;
+
+  /* operation status */
+  int status;
 
 } takepawn_fsm_t;
 
@@ -62,6 +69,22 @@ static void takepawn_fsm_next(void* data)
 
   switch (fsm->state)
   {
+  case INIT:
+    {
+      /* open the gripper and search */
+      fsm->prev_state = OPEN_GRIPPER;
+      break ;
+    }
+
+  case OPEN_GRIPPER:
+    {
+      igreboard_open_gripper(&igreboard_device);
+      fsm->msecs = swatch_get_msecs();
+      fsm->prev_state = SEARCH;
+      fsm->state = WAIT_GRIPPER;
+      break ;
+    }
+
   case SEARCH:
     {
       lcd_string(3, 0, "search");
@@ -104,15 +127,18 @@ static void takepawn_fsm_next(void* data)
       if (fsm->fl > fsm->fr) d = fsm->fl - fsm->fr;
       else d = fsm->fr - fsm->fl;
 
-      if (d < 30)
+      if (d < 50)
       {
 	fsm->state = MOVE;
 	break ;
       }
 
-      /* todo: angle should be proportional to d */
-      if (fsm->fl > fsm->fr) fsm->alpha = 8;
-      else fsm->alpha = -8;
+      /* angle roughly proportional to distance */
+      if (d > 100) fsm->alpha = 10;
+      else if (d > 75) fsm->alpha = 7;
+      else fsm->alpha = 4;
+
+      if (fsm->fl > fsm->fr) fsm->alpha *= -1;
 
       aversive_turn(&aversive_device, fsm->alpha);
       fsm->prev_state = CENTER;
@@ -123,43 +149,41 @@ static void takepawn_fsm_next(void* data)
   
   case MOVE:
     {
-      /* assume centered, move forward if not too near */
+      /* assume centered, move forward */
 
       lcd_string(3, 0, "move");
-      
-      if (fsm->fl <= 45)
-      {
-	fsm->state = SWITCH;
-	break ;
-      }
 
-      aversive_move_forward(&aversive_device, 45);
+      aversive_move_forward(&aversive_device, min(45, fsm->fl));
+
+      /* gripper switch may fail */
+      if (fsm->fl < 45) fsm->prev_state = CLOSE_GRIPPER;
+      else fsm->prev_state = CENTER;
 
       /* moving may invalidate center */
-      fsm->prev_state = CENTER;
-      fsm->state = WAIT_TRAJ;
+      fsm->state = WAIT_TRAJ_OR_GRIPPER_SWITCH;
 
       break ;
     }
 
-  case SWITCH:
+  case GRIPPER_SWITCH:
     {
-      lcd_string(3, 0, "switch");
+      lcd_string(3, 0, "gripper_switch");
 
       /* move until the grip switch pressed or distance reached */
       /* TODO aversive_move_forward(&aversive_device, 10 + (fsm->fl + fsm->fr) / 2); */
       aversive_move_forward(&aversive_device, 100);
-      fsm->state = WAIT_TRAJ_OR_SWITCH;
+      fsm->state = WAIT_TRAJ_OR_GRIPPER_SWITCH;
       break ;
     }
 
-  case GRIP:
+  case CLOSE_GRIPPER:
     {
-      lcd_string(3, 0, "grip");
+      lcd_string(3, 0, "close_gripper");
 
       igreboard_close_gripper(&igreboard_device);
-      fsm->gripper_delay = 0;
-      fsm->state = WAIT_GRIP;
+      fsm->msecs = swatch_get_msecs();
+      fsm->prev_state = DONE;
+      fsm->state = WAIT_GRIPPER;
       break ;
     }
 
@@ -175,40 +199,46 @@ static void takepawn_fsm_next(void* data)
       break ;
     }
 
-  case WAIT_TRAJ_OR_SWITCH:
+  case WAIT_TRAJ_OR_GRIPPER_SWITCH:
     {
       unsigned int is_pushed;
       int is_done;
 
-      lcd_string(3, 0, "wait_traj_or_switch");
+      lcd_string(3, 0, "wait_traj_or_gripper_switch");
 
-#if 0 /* TODO: not yet physically present */
       igreboard_get_gripper_switch(&igreboard_device, &is_pushed);
-#else
-      is_pushed = 0;
-#endif
       aversive_is_traj_done(&aversive_device, &is_done);
 
       if (is_pushed)
       {
 	/* stop aversive trajectory */
 	aversive_stop(&aversive_device);
-	fsm->state = GRIP;
+	fsm->state = CLOSE_GRIPPER;
       }
       else if (is_done)
       {
-	fsm->state = GRIP;
+	/* recenter if switch was not pressed */
+	fsm->state = fsm->prev_state;
       }
 
       break ;
     }
 
-  case WAIT_GRIP:
+  case WAIT_GRIPPER:
     {
-      lcd_string(3, 0, "wait_grip");
+      lcd_string(3, 0, "wait_gripper");
 
-      if (++fsm->gripper_delay == 100)
-	fsm->state = DONE;
+      /* wait for 800 msecs */
+      if ((swatch_get_msecs() - fsm->msecs) >= 800)
+	fsm->state = fsm->prev_state;
+
+      break ;
+    }
+
+  case FAILED:
+    {
+      fsm->status = -1;
+      fsm->state = DONE;
       break ;
     }
 
@@ -232,11 +262,11 @@ void takepawn_fsm_initialize(fsm_t* fsm)
   fsm->next = takepawn_fsm_next;
   fsm->is_done = takepawn_fsm_isdone;
 
-  data.state = SEARCH;
-  data.prev_state = SEARCH;
+  data.state = INIT;
   data.fl = 0;
   data.fr = 0;
   data.alpha = 0;
+  data.status = 0;
 
   fsm->data = (void*)&data;
 }
