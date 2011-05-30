@@ -10,7 +10,7 @@ extern igreboard_dev_t igreboard_device;
 
 static void lcd_bitmap(uint8_t row, uint8_t col, uint8_t map)
 {
-  char buf[2] = { 0, 0 };
+  char buf[] = { 0, 0 };
   unsigned int i;
 
   for (i = 0; i < 8; ++i, map >>= 1)
@@ -78,10 +78,11 @@ void unit_sensor(void)
     }
 
     /* sonar, 1 row */
-
+#if 0
     if (sonar_is_detected()) lcd_string(row, 0, "1");
     else lcd_string(row, 0, "0");
     ++row;
+#endif
 
     /* switch map, 1 row */
 

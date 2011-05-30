@@ -40,7 +40,8 @@ static inline unsigned int sharp_read(unsigned int index)
 #else
   igreboard_read_adc(&igreboard_device, index, &value);
 #endif
-  return sharp_adc10_to_mm(value);
+  return value;
+  /* return sharp_adc10_to_mm(value); */
 #endif
 }
 
@@ -65,8 +66,7 @@ static inline unsigned int sharp_read_fm(void)
 static inline unsigned int sharp_read_lh(void)
 {
   /* left high */
-  /* return sharp_read(8); */
-  return 0;
+  return sharp_read(8);
 }
 
 static inline unsigned int sharp_read_lb(void)
@@ -84,15 +84,13 @@ static inline unsigned int sharp_read_lf(void)
 static inline unsigned int sharp_read_rh(void)
 {
   /* right high */
-/*   return sharp_read(9); */
-  return 0;
+  return sharp_read(9);
 }
 
 static inline unsigned int sharp_read_rb(void)
 {
   /* right back */
   return sharp_read(10);
-  return 0;
 }
 
 static inline unsigned int sharp_read_rf(void)

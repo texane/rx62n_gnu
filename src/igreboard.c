@@ -61,12 +61,12 @@ int igreboard_close_gripper(igreboard_dev_t* dev)
 }
 
 int igreboard_get_gripper_switch
-(igreboard_dev_t* dev, unsigned int* value)
+(igreboard_dev_t* dev, unsigned int* is_pushed)
 {
   uint16_t values[] = { 0, 0, 0 };
   if (send_recv_msg(dev, IGREBOARD_CMD_GET_GRIPPER_SWITCH, values))
     return -1;
-  *value = (unsigned int)values[0];
+  *is_pushed = (unsigned int)values[0];
   return 0;
 }
 
