@@ -33,15 +33,8 @@ static inline unsigned int sharp_read(unsigned int index)
   return sharp_adc10_to_mm(adc_read(index));
 #else /* igreboard adc */
   unsigned int value;
-#if 0 /* non transnlated */
-  unsigned int translated = index;
-  if (translated > 2) translated += 5;
-  igreboard_read_adc(&igreboard_device, translated, &value);
-#else
   igreboard_read_adc(&igreboard_device, index, &value);
-#endif
-  return value;
-  /* return sharp_adc10_to_mm(value); */
+  return sharp_adc10_to_mm(value);
 #endif
 }
 

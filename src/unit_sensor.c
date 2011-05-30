@@ -16,7 +16,7 @@ static void lcd_bitmap(uint8_t row, uint8_t col, uint8_t map)
   for (i = 0; i < 8; ++i, map >>= 1)
   {
     buf[0] = '0' + (char)(map & 1);
-    lcd_string(row, col + i, buf);
+    lcd_string(row, col + i * 5, buf);
   }
 }
 
