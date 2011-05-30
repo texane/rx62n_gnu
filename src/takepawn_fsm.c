@@ -36,6 +36,8 @@ typedef struct takepawn_fsm
   /* store the previous or next state */
   unsigned int prev_state;
 
+  unsigned int saved_dist;
+
   /* front left, right sharps */
   unsigned int fl;
   unsigned int fr;
@@ -72,12 +74,17 @@ static void takepawn_fsm_next(void* data)
   case INIT:
     {
       /* open the gripper and search */
-      fsm->prev_state = OPEN_GRIPPER;
+
+      lcd_string(3, 0, "init        ");
+
+      fsm->state = OPEN_GRIPPER;
       break ;
     }
 
   case OPEN_GRIPPER:
     {
+      lcd_string(3, 0, "open_gripper");
+
       igreboard_open_gripper(&igreboard_device);
       fsm->msecs = swatch_get_msecs();
       fsm->prev_state = SEARCH;
@@ -87,7 +94,7 @@ static void takepawn_fsm_next(void* data)
 
   case SEARCH:
     {
-      lcd_string(3, 0, "search");
+      lcd_string(3, 0, "search      ");
 
       /* turn looking for the something */
       fsm->fl = sharp_read_fl();
@@ -115,14 +122,26 @@ static void takepawn_fsm_next(void* data)
     {
       unsigned int d;
 
-      lcd_string(3, 0, "center");
+      lcd_string(3, 0, "center       ");
 
       /* turn until the 2 read approx the same distance */
       fsm->fl = sharp_read_fl();
       fsm->fr = sharp_read_fr();
 
+      /* in case of perfectly centered, we save the previous distance */
+      if (fsm->fl != (unsigned int)-1) fsm->saved_dist = fsm->fl;
+
       lcd_uint16(4, 0, (uint16_t)fsm->fl);
       lcd_uint16(4, 30, (uint16_t)fsm->fr);
+
+#if 0 /* perfectly centered? */
+      if ((fsm->fl == (unsigned int)-1) && (fsm->fl == fsm->fr))
+      {
+	/* perfectly centered? */
+	fsm->fl = 0;
+	fsm->fr = 0;
+      }
+#endif
 
       if (fsm->fl > fsm->fr) d = fsm->fl - fsm->fr;
       else d = fsm->fr - fsm->fl;
@@ -151,13 +170,20 @@ static void takepawn_fsm_next(void* data)
     {
       /* assume centered, move forward */
 
-      lcd_string(3, 0, "move");
+      lcd_string(3, 0, "move         ");
 
-      aversive_move_forward(&aversive_device, min(45, fsm->fl));
-
-      /* gripper switch may fail */
-      if (fsm->fl < 45) fsm->prev_state = CLOSE_GRIPPER;
-      else fsm->prev_state = CENTER;
+      /* if perfectly centered */
+      if (fsm->fl == (unsigned int)-1)
+      {
+	aversive_move_forward(&aversive_device, fsm->saved_dist);
+	fsm->prev_state = CLOSE_GRIPPER;
+      }
+      else /* not perfectly centered */
+      {
+	aversive_move_forward(&aversive_device, min(45, fsm->fl));
+	if (fsm->fl < 45) fsm->prev_state = CLOSE_GRIPPER;
+	else fsm->prev_state = CENTER;
+      }
 
       /* moving may invalidate center */
       fsm->state = WAIT_TRAJ_OR_GRIPPER_SWITCH;
@@ -191,7 +217,7 @@ static void takepawn_fsm_next(void* data)
     {
       int isdone;
 
-      lcd_string(3, 0, "wait_traj");
+      lcd_string(3, 0, "wait_traj     ");
 
       aversive_is_traj_done(&aversive_device, &isdone);
       if (isdone == 1)
@@ -204,7 +230,7 @@ static void takepawn_fsm_next(void* data)
       unsigned int is_pushed;
       int is_done;
 
-      lcd_string(3, 0, "wait_traj_or_gripper_switch");
+      lcd_string(3, 0, "wait_traj_or  ");
 
       igreboard_get_gripper_switch(&igreboard_device, &is_pushed);
       aversive_is_traj_done(&aversive_device, &is_done);
@@ -237,6 +263,7 @@ static void takepawn_fsm_next(void* data)
 
   case FAILED:
     {
+      lcd_string(3, 0, "failed      ");
       fsm->status = -1;
       fsm->state = DONE;
       break ;
@@ -245,7 +272,7 @@ static void takepawn_fsm_next(void* data)
   default:
   case DONE:
     {
-      lcd_string(3, 0, "done");
+      lcd_string(3, 0, "done        ");
       break ;
     }
   }

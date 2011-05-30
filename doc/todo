@@ -4,7 +4,21 @@
  . avoidadvers_fsm, then put in fsm_main
  . sonar: set minimum distance in sonar_schedule
 
+. mettre un switch dans la pince
+
+. takepawn
+ . mettre un compteur pour empecher de tourner trop longtemps
+ . ou de trop avancer
+
+ . move state may have put ourself with 2 sharp 0xffff
+  -> perfeclty centered
+
+. movepawn_back
+ . 
+ . si le pion est lache, il faut le reprendre
+
 . tests
+ . unit_sensor
  . unit_sonar
  . unit_firstpos:
 
