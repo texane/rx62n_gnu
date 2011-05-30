@@ -128,3 +128,17 @@ int igreboard_read_sonar
   *d = (unsigned int)values[1];
   return 0;
 }
+
+int igreboad_get_cord_switch
+(igreboard_dev_t* dev, unsigned int* value)
+{
+  *value = 0;
+  return 0;
+}
+
+int igreboad_get_color_switch
+(igreboard_dev_t* dev, unsigned int* value)
+{
+  *value = 0;
+  return 0;
+}

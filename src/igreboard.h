@@ -25,6 +25,8 @@ int igreboard_get_back_switches(igreboard_dev_t*, unsigned int*);
 int igreboard_enable_sonar(igreboard_dev_t*);
 int igreboard_disable_sonar(igreboard_dev_t*);
 int igreboard_read_sonar(igreboard_dev_t*, unsigned int*, unsigned int*);
+int igreboad_get_cord_switch(igreboard_dev_t*, unsigned int*);
+int igreboad_get_color_switch(igreboard_dev_t*, unsigned int*);
 
 
 
