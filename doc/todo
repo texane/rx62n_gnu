@@ -1,5 +1,12 @@
 . todo
 
+. mettre en place le sonar dans fsm.c
+
+. tester que la swatch dure 1m30
+
+. cacher is_red dans color.h
+ -> color_set_red(unsigned int);
+
 . installer switch pour la cord et couleur
  -> impelmenter
 
@@ -31,6 +38,7 @@
 . putpawn_fsm
 
 . takepawn_fsm
+ -> rajouter un delai avant de taper sur CAN (ie. wait_traj...)
  -> switch dispo, faire un meilleur algo pour prise de pion
  . mettre un compteur pour empecher de tourner trop longtemps
  . ou de trop avancer

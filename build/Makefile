@@ -18,6 +18,7 @@ OBJS =				\
 	../src/firstpos_fsm.o	\
 	../src/waitcord_fsm.o	\
 	../src/emptyarea_fsm.o	\
+	../src/leavestart_fsm.o	\
 	../src/switches.o	\
 	../src/blinker.o	\
 	../src/swatch.o		\
