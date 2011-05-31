@@ -1,7 +1,5 @@
 . todo
 
-. mettre en place le sonar dans fsm.c
-
 . tester que la swatch dure 1m30
 
 . cacher is_red dans color.h

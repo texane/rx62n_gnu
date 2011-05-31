@@ -83,7 +83,7 @@ static void leavestart_fsm_next(void* fsm_)
 
   case TURN_1:
     {
-      const int16_t alpha = fsm->is_red ? 5 : -5;
+      const int16_t alpha = fsm->is_red ? 4 : -4;
       aversive_turn(&aversive_device, alpha);
       fsm->msecs = swatch_get_msecs();
       fsm->state = WAIT_TRAJ;
