@@ -37,6 +37,11 @@ void fsm_execute_all(void)
 {
   /* execute from the stack top */
 
+#if CONFIG_ENABLE_SONAR
+  unsigned int is_detected = 0;
+  fsm_t detected_fsm;
+#endif /* CONFIG_ENABLE_SONAR */
+
   fsm_t* fsm;
 
   while (1) 
@@ -48,11 +53,17 @@ void fsm_execute_all(void)
     fsm = stack.data[stack.top - 1];
 
 #if CONFIG_ENABLE_SONAR
-    if (sonar_is_detected())
+    if ((is_detected == 0) && sonar_is_detected())
     {
+      /* dont reenter next time */
+      is_detected = 1;
+
       fsm->preempt(fsm->data);
-      /* TODO: avoidadvers_fsm_initialize(); */
-      break ;
+
+      detected_fsm_initialize(&detected_fsm);
+      fsm_push(&detected_fsm);
+
+      continue ;
     }
 #endif /* CONFIG_ENABLE_SONAR */
 
@@ -73,6 +84,10 @@ void fsm_execute_all(void)
 
     if (fsm->is_done(fsm->data))
     {
+#if CONFIG_ENABLE_SONAR
+      is_detected = 0;
+#endif /* CONFIG_ENABLE_SONAR */
+
       /* pop the current and redo */
       --stack.top;
       continue ;

@@ -1,6 +1,13 @@
 . todo
 
-. tester que la swatch dure 1m30
+. se concentrer sur l homologation dans un premier temps
+ -> faire au plus simple
+ -> tester que la swatch dure 1m30
+
+. default_fsm
+ . should be base_fsm
+ . must have a basic state common to all
+  -> for preemption, basic preempt / restart state (ie. position...)
 
 . cacher is_red dans color.h
  -> color_set_red(unsigned int);
@@ -29,7 +36,8 @@
  . avoidadvers_fsm, then put in fsm_main
 
 . sonar
- -> faire tourner le code en dehors du gestionnaire d interruption
+ -> pour le moment, setter un is_moving
+ -> faire tourner le code en dehors du gestionnaire d interruption si probleme
 
 . emptyarea
 

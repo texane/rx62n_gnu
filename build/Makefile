@@ -13,6 +13,7 @@ OBJS =				\
 	../src/tile.o		\
 	../src/fsm.o		\
 	../src/default_fsm.o	\
+	../src/detected_fsm.o	\
 	../src/takepawn_fsm.o	\
 	../src/latpawn_fsm.o	\
 	../src/firstpos_fsm.o	\
