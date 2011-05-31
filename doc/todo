@@ -1,6 +1,9 @@
 . todo
 
 . installer switch pour la couleur
+. installer switch cord
+
+. LCD debug macro
 
 . aversive
  . checker systeme de coordonnees correct

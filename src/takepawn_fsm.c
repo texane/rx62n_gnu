@@ -1,3 +1,4 @@
+#include "config.h"
 #include "fsm.h"
 #include "sharp.h"
 #include "aversive.h"
