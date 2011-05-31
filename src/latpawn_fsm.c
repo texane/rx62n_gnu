@@ -108,7 +108,7 @@ static void latpawn_fsm_next(void* data)
 	  f = sharp_read_lf();
 	}
 
-#define PAWN_DIST 200
+#define PAWN_DIST 350
 	if ((f < PAWN_DIST) && (b < PAWN_DIST))
 	{
 	  aversive_stop(&aversive_device);

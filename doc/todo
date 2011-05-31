@@ -5,6 +5,8 @@
 
 . LCD debug macro
 
+. calibrer les sharps lateraux et regler PAWN_DIST dans latpawn
+
 . aversive
  . checker systeme de coordonnees correct
   -> on veut qu initialement oriente, si le robot avance, x avance
