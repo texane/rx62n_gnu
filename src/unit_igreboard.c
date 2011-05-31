@@ -52,9 +52,13 @@ void unit_igreboard(void)
     /* update leds */
     igreboard_set_led(&igreboard_device, 0, led & 1);
     igreboard_set_led(&igreboard_device, 2, led & 1);
+    igreboard_set_led_2(&igreboard_device, 0, led & 1);
+    igreboard_set_led_2(&igreboard_device, 2, led & 1);
     led ^= 1;
     igreboard_set_led(&igreboard_device, 1, led & 1);
     igreboard_set_led(&igreboard_device, 3, led & 1);
+    igreboard_set_led_2(&igreboard_device, 1, led & 1);
+    igreboard_set_led_2(&igreboard_device, 3, led & 1);
 
     /* display back switches */
     igreboard_get_back_switches(&igreboard_device, &i);

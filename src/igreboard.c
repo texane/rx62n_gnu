@@ -16,6 +16,11 @@
 #define IGREBOARD_CMD_GET_BACK_SWITCHES 0x07
 #define IGREBOARD_CMD_ENABLE_SONAR 0x08
 #define IGREBOARD_CMD_READ_SONAR 0x09
+
+#define IGREBOARD_CMD_SET_LED_2 (IGREBOARD_CMD_READ_SONAR + 0x01)
+#define IGREBOARD_CMD_READ_ADC_2 (IGREBOARD_CMD_READ_SONAR + 0x02)
+#define IGREBOARD_CMD_GET_BACK_SWITCHES_2 (IGREBOARD_CMD_READ_SONAR + 0x03)
+
 #define IGREBOARD_CMD_UNKNOWN ((uint8_t)-1)
 
 
@@ -96,7 +101,7 @@ int igreboard_get_back_switches(igreboard_dev_t* dev, unsigned int* map)
   /* format: right << 1 | left */
 
   uint16_t values[] = { 0, 0, 0 };
-  if (send_recv_msg(dev, IGREBOARD_CMD_GET_BACK_SWITCHES, values))
+  if (send_recv_msg(dev, IGREBOARD_CMD_GET_BACK_SWITCHES_2, values))
     return -1;
   *map = (unsigned int)values[0];
   return 0;
@@ -141,4 +146,13 @@ int igreboard_get_color_switch
 {
   *value = 0;
   return 0;
+}
+
+/* second command set */
+
+int igreboard_set_led_2
+(igreboard_dev_t* dev, unsigned int index, unsigned int value)
+{
+  uint16_t values[] = { index, value, 0 };
+  return send_recv_msg(dev, IGREBOARD_CMD_SET_LED_2, values);
 }

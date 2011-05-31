@@ -27,7 +27,7 @@ int igreboard_disable_sonar(igreboard_dev_t*);
 int igreboard_read_sonar(igreboard_dev_t*, unsigned int*, unsigned int*);
 int igreboard_get_cord_switch(igreboard_dev_t*, unsigned int*);
 int igreboard_get_color_switch(igreboard_dev_t*, unsigned int*);
-
+int igreboard_set_led_2(igreboard_dev_t*, unsigned int, unsigned int);
 
 
 #endif /* ! IGREBOARD_H_INCLUDED */
