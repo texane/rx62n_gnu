@@ -1,12 +1,19 @@
 . todo
+
+. firstpos
  . set robot center in firstpos_fsm
   -> faire une serie de tests pour voir si le positionnement absolu fonctionne
  . avoidadvers_fsm, then put in fsm_main
- . sonar: set minimum distance in sonar_schedule
 
-. mettre un switch dans la pince
+. sonar
+ -> faire tourner le code en dehors du gestionnaire d interruption
 
-. takepawn
+. emptyarea
+
+. putpawn_fsm
+
+. takepawn_fsm
+ -> switch dispo, faire un meilleur algo pour prise de pion
  . mettre un compteur pour empecher de tourner trop longtemps
  . ou de trop avancer
 
@@ -14,13 +21,11 @@
   -> perfeclty centered
 
 . movepawn_back
- . 
  . si le pion est lache, il faut le reprendre
+ . check the switch is always held
 
 . tests
- . unit_sensor
  . unit_sonar
- . unit_firstpos:
 
 
 [!] poller le bus can regulierement avant le scheduling des automate
