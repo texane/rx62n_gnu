@@ -11,6 +11,7 @@ void unit_adc(void);
 void unit_sonar(void);
 void unit_firstpos(void);
 void unit_sensor(void);
+void unit_latpawn(void);
 
 
 #endif /* UNIT_H_INCLUDED */

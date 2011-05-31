@@ -135,6 +135,8 @@ int main(void)
   unit_sonar();
 #elif CONFIG_UNIT_SENSOR
   unit_sensor();
+#elif CONFIG_UNIT_LATPAWN
+  unit_latpawn();
 #else
   while (1) asm("wait\n");
 #endif

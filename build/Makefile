@@ -14,6 +14,7 @@ OBJS =				\
 	../src/fsm.o		\
 	../src/default_fsm.o	\
 	../src/takepawn_fsm.o	\
+	../src/latpawn_fsm.o	\
 	../src/firstpos_fsm.o	\
 	../src/waitcord_fsm.o	\
 	../src/emptyarea_fsm.o	\
@@ -37,6 +38,7 @@ OBJS =				\
 	../src/unit_adc.o	\
 	../src/unit_sonar.o	\
 	../src/unit_sensor.o	\
+	../src/unit_latpawn.o	\
 	../src/interrupt_table.o
 
 all : $(ELF).elf

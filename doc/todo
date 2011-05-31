@@ -1,6 +1,16 @@
 . todo
 
-. firstpos
+. installer switch pour la couleur
+
+. aversive
+ . checker systeme de coordonnees correct
+  -> on veut qu initialement oriente, si le robot avance, x avance
+ . aversive_set_speed not working... or bad commands previously sent
+
+. leavestart_fsm
+ . todo
+
+. firstpos_fsm
  . set robot center in firstpos_fsm
   -> faire une serie de tests pour voir si le positionnement absolu fonctionne
  . avoidadvers_fsm, then put in fsm_main
@@ -16,6 +26,7 @@
  -> switch dispo, faire un meilleur algo pour prise de pion
  . mettre un compteur pour empecher de tourner trop longtemps
  . ou de trop avancer
+ . eviter de prendre une tour ou l adversaire...
 
  . move state may have put ourself with 2 sharp 0xffff
   -> perfeclty centered

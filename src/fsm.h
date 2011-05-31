@@ -27,6 +27,10 @@ void takepawn_fsm_initialize(fsm_t*);
 void firstpos_fsm_initialize(fsm_t*);
 void waitcord_fsm_initialize(fsm_t*);
 void emptyarea_fsm_initialize(fsm_t*);
+void latpawn_fsm_initialize(fsm_t*);
+
+/* private fsm methods */
+unsigned int latpawn_is_pawn(void*);
 
 
 #endif /* ! FSM_H_INCLUDED */
