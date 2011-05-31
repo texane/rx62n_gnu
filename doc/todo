@@ -1,9 +1,10 @@
 . todo
 
-. pince ne marche pas
+. installer switch pour la cord et couleur
+ -> impelmenter
 
-. installer switch pour la couleur
-. installer switch cord
+. pince ne marche pas ?
+ -> test avec le sonar pas convaincant...
 
 . LCD debug macro
 
