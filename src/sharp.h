@@ -22,6 +22,8 @@ void sharp_schedule(void);
 #define SHARP_ADC_INDEX_LB 11 /* left back */
 #define SHARP_ADC_INDEX_LF 12 /* left front */
 
+#define SHARP_ADC_INDEX_RB 11 /* right back */
+#define SHARP_ADC_INDEX_RF 12 /* right front */
 
 #include "igreboard.h"
 
@@ -34,6 +36,17 @@ static inline unsigned int sharp_read(unsigned int index)
 #else /* igreboard adc */
   unsigned int value;
   igreboard_read_adc(&igreboard_device, index, &value);
+  return sharp_adc10_to_mm(value);
+#endif
+}
+
+static inline unsigned int sharp_read_2(unsigned int index)
+{
+#if 0 /* local adc */
+  return sharp_adc10_to_mm(adc_read(index));
+#else /* igreboard adc */
+  unsigned int value;
+  igreboard_read_adc_2(&igreboard_device, index, &value);
   return sharp_adc10_to_mm(value);
 #endif
 }
@@ -82,14 +95,14 @@ static inline unsigned int sharp_read_rh(void)
 
 static inline unsigned int sharp_read_rb(void)
 {
-  /* right back */
-  return sharp_read(10);
+  /* right front, rb12 */
+  return sharp_read_2(SHARP_ADC_INDEX_RB);
 }
 
 static inline unsigned int sharp_read_rf(void)
 {
-  /* right front */
-  return 0;
+  /* right front, rb11 */
+  return sharp_read_2(SHARP_ADC_INDEX_RF);
 }
 
 static inline unsigned int sharp_read_b(void)

@@ -156,3 +156,13 @@ int igreboard_set_led_2
   uint16_t values[] = { index, value, 0 };
   return send_recv_msg(dev, IGREBOARD_CMD_SET_LED_2, values);
 }
+
+int igreboard_read_adc_2
+(igreboard_dev_t* dev, unsigned int chan, unsigned int* value)
+{
+  uint16_t values[] = { (uint16_t)chan, 0, 0 };
+  if (send_recv_msg(dev, IGREBOARD_CMD_READ_ADC_2, values))
+    return -1;
+  *value = (unsigned int)values[1];
+  return 0;
+}
