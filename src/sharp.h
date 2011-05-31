@@ -23,7 +23,11 @@ void sharp_schedule(void);
 #define SHARP_ADC_INDEX_LF 12 /* left front */
 
 #define SHARP_ADC_INDEX_RB 11 /* right back */
+#if 0
 #define SHARP_ADC_INDEX_RF 12 /* right front */
+#else
+#define SHARP_ADC_INDEX_RF 10 /* right front */
+#endif
 
 #include "igreboard.h"
 

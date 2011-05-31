@@ -85,7 +85,7 @@ void unit_sensor(void)
 #endif
 
     /* switch map, 1 row */
-
+    ++row;
     map = 0;
 
     igreboard_get_back_switches(&igreboard_device, &value);
@@ -100,7 +100,6 @@ void unit_sensor(void)
     igreboard_get_color_switch(&igreboard_device, &value);
     map |= (value & 1) << 4;
 
-    lcd_bitmap(row, col, map);
-    ++row;
+    lcd_bitmap(row, 0, map);
   }
 }
