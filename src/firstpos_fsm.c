@@ -85,7 +85,8 @@ static void firstpos_fsm_next(void* data)
     break ;
 
   case TURN_0:
-    aversive_turn(&aversive_device, -90);
+    if (fsm->is_red) aversive_turn(&aversive_device, -90);
+    else aversive_turn(&aversive_device, 90);
     fsm->next_state = MOVE_BACK_1;
     fsm->state = WAIT_TRAJ;
     break ;

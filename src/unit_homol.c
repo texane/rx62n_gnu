@@ -13,20 +13,12 @@ extern igreboard_dev_t igreboard_device;
 extern aversive_dev_t aversive_device;
 
 
-typedef enum
-{
-  INIT = 0,
-  WAIT_CORD,
-  WAIT_CORD,
-  AVOID,
-  WAIT_TURN,
-  WAIT_TRAJ,
-  TRAJ_DONE,
-  INVALID
-} state_t;
+/* globals */
 
-static state_t state;
+static unsigned int is_red;
 
+
+/* aversive */
 
 static void wait_abit(void)
 {
@@ -34,10 +26,10 @@ static void wait_abit(void)
   for (i = 0; i < 1000; ++i) asm("nop");
 }
 
-static int wait_done(aversive_dev_t* dev)
+static int wait_done(void)
 {
+  aversive_dev_t* const dev = &aversive_device;
   int is_done;
-
   for (is_done = 0; is_done == 0; )
   {
     wait_abit();
@@ -55,67 +47,69 @@ static int wait_done(aversive_dev_t* dev)
 }
 
 
-static unsigned int is_red;
-
 static void initialize(void)
 {
-  igreboard
+  /* initialize globals */
+  igreboard_get_color_switch(&igreboard_device, &is_red);
 }
+
+
+static void first_pos(void)
+{
+  fsm_t fsm;
+  firstpos_fsm_initialize(&fsm);
+  fsm_execute_one(&fsm);
+}
+
+
+static void wait_cord(void)
+{
+  fsm_t fsm;
+  waitcord_fsm_initialize(&fsm);
+  fsm_execute_one(&fsm);
+}
+
 
 static void goto_first_line(void)
 {
+  int16_t a, x, y;
+  aversive_get_pos(&aversive_device, &a, &x, &y);
+  if (is_red) x = 600;
+  else x = 3000 - 600;
+  aversive_goto_xy_abs(&aversive_device, x, y);
+  wait_done();
 }
 
-static void
 
+static void turn(void)
+{
+#if 0
+  const int16_t a = is_red ? ;
+
+  if (is_red) a = 600;
+  else x = 3000 - 600;
+
+  wait_done();
+#endif
+}
+
+
+static void move_until(void)
+{
+  /* (sharp || switch || done || gameover || avoid) */
+}
+
+
+/* exported */
 
 void unit_homol(void)
 {
-  /* algorithm:
-     wait_cord();
-     recal();
-     goto_first_line();
-     turn_90();
-     move_forward_until(sharp || switch || done || gameover || avoid)
-     {
+  initialize();
+  first_pos();
+  wait_cord();
+  goto_first_line();
+  turn();
+  move_until();
 
-     }
-
-     find nearest tile
-     putpawn()
-   */
-
-  unsigned int is_red;
-  int16_t a, x, y;
-  
-  igreboard_get_color_switch(&igreboard_device, &is_red);
-
-  if (is_red)
-  {
-    a = 0;
-    x = 97;
-    y = 2100 - 160;
-  }
-  else
-  {
-    a = 180;
-    x = 3000 - 97;
-    y = 2100 - 160;
-  }
-
-/*   aversive_set_pos(&aversive_device, a, x, y); */
-/*   aversive_goto_xy_abs(&aversive_device, x + 100, y); */
-/*   wait_done(&aversive_device); */
-
-  aversive_set_pos(&aversive_device, a, x, y);
-  if (is_red)
-    aversive_goto_xy_abs(&aversive_device, x + 100, y - 100);
-  else
-    aversive_goto_xy_abs(&aversive_device, x - 100, y - 100);
-  wait_done(&aversive_device);
-
-  aversive_get_pos(&aversive_device, &a, &x, &y);
-  lcd_uint16(1, 0, a);
-  lcd_uint16(2, 0, x);
-  lcd_uint16(3, 0, y);
+  while (1) asm("nop");
 }

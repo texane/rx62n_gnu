@@ -13,6 +13,7 @@ void unit_firstpos(void);
 void unit_sensor(void);
 void unit_latpawn(void);
 void unit_pos(void);
+void unit_homol(void);
 
 
 #endif /* UNIT_H_INCLUDED */

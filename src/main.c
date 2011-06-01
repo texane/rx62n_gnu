@@ -139,6 +139,8 @@ int main(void)
   unit_latpawn();
 #elif CONFIG_UNIT_POS
   unit_pos();
+#elif CONFIG_UNIT_HOMOL
+  unit_homol();
 #else
   while (1) asm("wait\n");
 #endif

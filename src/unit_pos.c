@@ -68,6 +68,12 @@ void unit_pos(void)
     aversive_goto_xy_abs(&aversive_device, x - 100, y - 100);
   wait_done(&aversive_device);
 
+  if (is_red)
+    aversive_turn(&aversive_device, -90);
+  else
+    aversive_turn(&aversive_device, 90);
+  wait_done(&aversive_device);
+
   aversive_get_pos(&aversive_device, &a, &x, &y);
   lcd_uint16(1, 0, a);
   lcd_uint16(2, 0, x);

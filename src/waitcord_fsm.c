@@ -39,7 +39,7 @@ static void cord_fsm_next(void* data)
 
 /* exported */
 
-void cord_fsm_initialize(fsm_t* fsm)
+void waitcord_fsm_initialize(fsm_t* fsm)
 {
   default_fsm_initialize(fsm);
   fsm->next = cord_fsm_next;
