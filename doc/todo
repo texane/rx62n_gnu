@@ -2,6 +2,7 @@
 
 . se concentrer sur l homologation dans un premier temps
  -> faire au plus simple
+  -> chercher le premier pion et le deposer sur la zone la plus proche de la meme couleur
  -> tester que la swatch dure 1m30
 
 . default_fsm

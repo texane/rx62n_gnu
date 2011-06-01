@@ -20,6 +20,8 @@
 #define IGREBOARD_CMD_SET_LED_2 (IGREBOARD_CMD_READ_SONAR + 0x01)
 #define IGREBOARD_CMD_READ_ADC_2 (IGREBOARD_CMD_READ_SONAR + 0x02)
 #define IGREBOARD_CMD_GET_BACK_SWITCHES_2 (IGREBOARD_CMD_READ_SONAR + 0x03)
+#define IGREBOARD_CMD_GET_CORD_SWITCH_2 (IGREBOARD_CMD_READ_SONAR + 0x04)
+#define IGREBOARD_CMD_GET_COLOR_SWITCH_2 (IGREBOARD_CMD_READ_SONAR + 0x05)
 
 #define IGREBOARD_CMD_UNKNOWN ((uint8_t)-1)
 
@@ -135,16 +137,22 @@ int igreboard_read_sonar
 }
 
 int igreboard_get_cord_switch
-(igreboard_dev_t* dev, unsigned int* value)
+(igreboard_dev_t* dev, unsigned int* is_pushed)
 {
-  *value = 0;
+  uint16_t values[] = { 0, 0, 0 };
+  if (send_recv_msg(dev, IGREBOARD_CMD_GET_CORD_SWITCH_2, values))
+    return -1;
+  *is_pushed = (unsigned int)values[0];
   return 0;
 }
 
 int igreboard_get_color_switch
-(igreboard_dev_t* dev, unsigned int* value)
+(igreboard_dev_t* dev, unsigned int* is_pushed)
 {
-  *value = 0;
+  uint16_t values[] = { 0, 0, 0 };
+  if (send_recv_msg(dev, IGREBOARD_CMD_GET_COLOR_SWITCH_2, values))
+    return -1;
+  *is_pushed = (unsigned int)values[0];
   return 0;
 }
 

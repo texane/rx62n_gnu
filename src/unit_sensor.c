@@ -47,18 +47,25 @@ void unit_sensor(void)
   unsigned int i;
   uint8_t map;
 
+  igreboard_open_gripper(&igreboard_device);
+  {
+    const unsigned int msecs = swatch_get_msecs();
+    while ((swatch_get_msecs() - msecs) < 2000) ;
+  }
+
   msecs[1] = swatch_get_msecs();
 
   while (1)
   {
+#if 0
     /* wait for at least 10ms */
-
     msecs[0] = swatch_get_msecs();
-    if ((msecs[0] - msecs[1]) >= 10)
+    if ((msecs[0] - msecs[1]) >= 1000)
       can_poll_bus(igreboard_device.can_dev);
+#endif
 
     /* wait for at least 1 second */
-
+    msecs[0] = swatch_get_msecs();
     if ((msecs[0] - msecs[1]) < 1000) continue ;
     msecs[1] = msecs[0];
 
