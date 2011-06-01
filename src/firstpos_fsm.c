@@ -30,6 +30,8 @@ typedef struct firstpos_fsm
   enum firstpos_state state;
   enum firstpos_state next_state;
 
+  unsigned int is_red;
+
   /* last read pos */
   int16_t posx;
   int16_t posy;
@@ -64,18 +66,20 @@ static void firstpos_fsm_next(void* data)
   case INIT:
     /* aversive_set_speed(&aversive_device, 500, 500); */
     fsm->state = MOVE_BACK_0;
+    igreboard_get_color_switch(&igreboard_device, &fsm->is_red);
     break ;
 
   case MOVE_BACK_0:
-    aversive_move_forward(&aversive_device, -100);
+    aversive_move_forward(&aversive_device, -150);
     fsm->msecs = swatch_get_msecs();
     fsm->state = WAIT_MSECS_THEN_BLOCK;
     fsm->next_state = MOVE_FRONT_0;
     break ;
 
   case MOVE_FRONT_0:
-    aversive_set_pos(&aversive_device, 0, 97, 0);
-    aversive_move_forward(&aversive_device, 100);
+    if (fsm->is_red) aversive_set_pos(&aversive_device, 0, 97, 0);
+    else aversive_set_pos(&aversive_device, 180, 3000 - 97, 0);
+    aversive_move_forward(&aversive_device, 150);
     fsm->next_state = TURN_0;
     fsm->state = WAIT_TRAJ;
     break ;
@@ -95,14 +99,15 @@ static void firstpos_fsm_next(void* data)
 
   case MOVE_FRONT_1:
     aversive_get_pos(&aversive_device, &posa, &posx, &posy);
-    aversive_set_pos(&aversive_device, posa, posx, 160);
-    aversive_move_forward(&aversive_device, 100);
+    aversive_set_pos(&aversive_device, posa, posx, 2100 - 160);
+    aversive_move_forward(&aversive_device, 150);
     fsm->next_state = TURN_1;
     fsm->state = WAIT_TRAJ;
     break ;
 
   case TURN_1:
-    aversive_turn(&aversive_device, 90);
+    if (fsm->is_red) aversive_turn(&aversive_device, 90);
+    else aversive_turn(&aversive_device, -90);
     fsm->next_state = DONE;
     fsm->state = WAIT_TRAJ;
     break ;
