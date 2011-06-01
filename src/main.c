@@ -137,6 +137,8 @@ int main(void)
   unit_sensor();
 #elif CONFIG_UNIT_LATPAWN
   unit_latpawn();
+#elif CONFIG_UNIT_POS
+  unit_pos();
 #else
   while (1) asm("wait\n");
 #endif

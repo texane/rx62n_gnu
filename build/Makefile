@@ -41,6 +41,7 @@ OBJS =				\
 	../src/unit_sonar.o	\
 	../src/unit_sensor.o	\
 	../src/unit_latpawn.o	\
+	../src/unit_pos.o	\
 	../src/interrupt_table.o
 
 all : $(ELF).elf

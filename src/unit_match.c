@@ -9,7 +9,7 @@ void unit_match(void)
 
   /* bootstrap */
   /* fsm_push(wanderer_fsm); */
-  fsm_push(emptyarea_fsm);
+  /* fsm_push(emptyarea_fsm); */
   fsm_push(leavestart_fsm);
   fsm_push(waitcord_fsm);
   fsm_push(firstpos_fsm);
