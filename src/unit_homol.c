@@ -1,4 +1,9 @@
 #include "config.h"
+
+/* test on the table */
+/* #define CONFIG_TABLE_TEST 1 */
+#define CONFIG_TABLE_TEST 0
+
 #include <stdint.h>
 #include "fsm.h"
 #include "swatch.h"
@@ -31,8 +36,13 @@ static unsigned int done_reason;
 
 static void wait_abit(void)
 {
+#if 0
   volatile unsigned int i;
   for (i = 0; i < 1000; ++i) asm("nop");
+#else
+  const unsigned int msecs = swatch_get_msecs();
+  while ((swatch_get_msecs() - msecs) < 100) ;
+#endif
 }
 
 static int wait_done(void)
@@ -60,14 +70,21 @@ static void initialize(void)
 {
   /* initialize globals */
   igreboard_get_color_switch(&igreboard_device, &is_red);
+  igreboard_enable_sonar(&igreboard_device);
+
+#if CONFIG_ENABLE_SONAR
+  sonar_initialize();
+#endif
 }
 
 
 static void first_pos(void)
 {
-  fsm_t fsm;
-  firstpos_fsm_initialize(&fsm);
-  fsm_execute_one(&fsm);
+  int16_t posa, posx, posy;
+  if (is_red) aversive_set_pos(&aversive_device, 0, 97, 0);
+  else aversive_set_pos(&aversive_device, 180, 3000 - 97, 0);
+  aversive_get_pos(&aversive_device, &posa, &posx, &posy);
+  aversive_set_pos(&aversive_device, posa, posx, 2100 - 160);
 }
 
 
@@ -81,20 +98,29 @@ static void wait_cord(void)
 
 static void goto_first_line(void)
 {
+#if (CONFIG_TABLE_TEST == 0)
   int16_t a, x, y;
   aversive_get_pos(&aversive_device, &a, &x, &y);
-  if (is_red) x = 600;
-  else x = 3000 - 600;
+  if (is_red) x = 700;
+  else x = 3000 - 700;
   aversive_goto_xy_abs(&aversive_device, x, y);
   wait_done();
+#endif
 }
 
 
 static void turn(void)
 {
+#if (CONFIG_TABLE_TEST == 0)
   const int16_t a = is_red ? -90 : 90;
+  igreboard_open_gripper(&igreboard_device);
   aversive_turn(&aversive_device, a);
   wait_done();
+#else
+  const unsigned int msecs = swatch_get_msecs();
+  igreboard_open_gripper(&igreboard_device);
+  while (swatch_get_msecs() - msecs < 1000) ;
+#endif
 }
 
 
@@ -116,6 +142,7 @@ static void move_until(void)
 
   while (1)
   {
+    /* can_poll_bus(igreboard_device.can_dev); */
     wait_abit();
 
     /* gameover */
@@ -133,21 +160,24 @@ static void move_until(void)
       break ;
     }
 
+#if CONFIG_ENABLE_SONAR
     /* sonar */
+    sonar_schedule();
     if (sonar_is_detected())
     {
       done_reason = DONE_REASON_SONAR;
-      return ;
+      break ;
     }
+#endif /* CONFIG_ENABLE_SONAR */
 
     /* sharp */
     fl = sharp_read_fl();
     fr = sharp_read_fr();
-#define PAWN_DIST 200
+#define PAWN_DIST 150
     if (min(fl, fr) <= PAWN_DIST)
     {
       done_reason = DONE_REASON_SHARP;
-      return ;
+      break ;
     }
 
     /* switch */
@@ -155,7 +185,7 @@ static void move_until(void)
     if (is_pushed == 1)
     {
       done_reason = DONE_REASON_SWITCH;
-      return ;
+      break ;
     }
 
     /* traj */
@@ -163,12 +193,107 @@ static void move_until(void)
     if (is_done)
     {
       done_reason = DONE_REASON_TRAJ;
-      return ;
+      break ;
     }
   }
 
   if (done_reason != DONE_REASON_TRAJ)
     aversive_stop(&aversive_device);
+}
+
+
+static inline int16_t clamp_y(int16_t y)
+{
+  if (y < 0) y = 0;
+  else if (y > 2100) y = 2100;
+  return y;
+}
+
+static inline unsigned int is_left_red(void)
+{
+  /* does not depend on the color */
+  int16_t a, x, y;
+  aversive_get_pos(&aversive_device, &a, &x, &y);
+  y = 2100 - clamp_y(y);
+  /* even left reds */
+  return ((y / 350) & 1) == 0;
+}
+
+static void do_putpawn_left(void)
+{
+  const int16_t a = is_red ? -90 : 90;
+  aversive_turn(&aversive_device, a);
+  wait_done();
+
+  aversive_move_forward(&aversive_device, 100);
+  wait_done();
+
+  const unsigned int msecs = swatch_get_msecs();
+  igreboard_open_gripper(&igreboard_device);
+  while (swatch_get_msecs() - msecs < 1000) ;
+
+  aversive_move_forward(&aversive_device, -150);
+  wait_done();
+
+  aversive_turn(&aversive_device, -a);
+  wait_done();
+}
+
+static void do_putpawn_right(void)
+{
+  const int16_t a = is_red ? 90 : -90;
+  aversive_turn(&aversive_device, a);
+  wait_done();
+
+  aversive_move_forward(&aversive_device, 100);
+  wait_done();
+
+  const unsigned int msecs = swatch_get_msecs();
+  igreboard_open_gripper(&igreboard_device);
+  while (swatch_get_msecs() - msecs < 1000) ;
+
+  aversive_move_forward(&aversive_device, -150);
+  wait_done();
+
+  aversive_turn(&aversive_device, -a);
+  wait_done();
+}
+
+static void do_putpawn(void)
+{
+  if (is_red)
+  {
+    if (is_left_red()) do_putpawn_left();
+    else do_putpawn_right();
+  }
+  else
+  {
+    if (is_left_red()) do_putpawn_right();
+    else do_putpawn_left();
+  }
+
+#if 0
+  unsigned int msecs;
+
+  aversive_turn(&aversive_device, 90);
+  wait_done();
+
+  aversive_move_forward(&aversive_device, 100);
+  wait_done();
+
+  msecs = swatch_get_msecs();
+  igreboard_open_gripper(&igreboard_device);
+  while ((swatch_get_msecs() - msecs) < 1000) ;
+
+  aversive_move_forward(&aversive_device, -150);
+  wait_done();
+
+  aversive_turn(&aversive_device, -90);
+  wait_done();
+
+  aversive_move_forward(&aversive_device, 100);
+  wait_done();
+#endif
 }
 
 
@@ -182,6 +307,13 @@ static unsigned int handle_done(void)
   case DONE_REASON_POS:
   case DONE_REASON_GAMEOVER:
     {
+      aversive_stop(&aversive_device);
+      aversive_set_asserv(&aversive_device, 0);
+      aversive_set_power(&aversive_device, 0);
+
+#if CONFIG_ENABLE_SONAR
+      igreboard_disable_sonar(&igreboard_device);
+#endif
       break ;
     }
 
@@ -192,16 +324,22 @@ static unsigned int handle_done(void)
     }
 
   case DONE_REASON_SHARP:
-  case_done_reason_sharp:
     {
+      fsm_t fsm;
+      takepawn_fsm_initialize(&fsm);
+      fsm_execute_one(&fsm);
+      do_putpawn();
       can_redo = 1;
       break ;
     }
 
   case DONE_REASON_SWITCH:
     {
-      aversive_move_forward(&aversive_device, -100);
-      goto case_done_reason_sharp;
+      const unsigned int msecs = swatch_get_msecs();
+      igreboard_close_gripper(&igreboard_device);
+      while ((swatch_get_msecs() - msecs) < 1000) ;
+      do_putpawn();
+      can_redo = 1;
       break ;
     }
 

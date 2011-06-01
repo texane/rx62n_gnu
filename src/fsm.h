@@ -24,6 +24,7 @@ void fsm_execute_one(fsm_t*);
 /* xxx_fsm factory */
 void default_fsm_initialize(fsm_t*);
 void takepawn_fsm_initialize(fsm_t*);
+void putpawn_fsm_initialize(fsm_t*);
 void firstpos_fsm_initialize(fsm_t*);
 void waitcord_fsm_initialize(fsm_t*);
 void emptyarea_fsm_initialize(fsm_t*);

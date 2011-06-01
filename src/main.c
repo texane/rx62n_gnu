@@ -83,7 +83,7 @@ static int initialize(void)
 #endif
 
 #if CONFIG_ENABLE_SONAR
-  sonar_initialize();
+  /* sonar_initialize(); */
 #endif
 
   /* init and start the scheduler */
@@ -167,7 +167,9 @@ void tick_isr(void)
   swatch_schedule();
 #endif
 
+#if 0
 #if CONFIG_ENABLE_SONAR
   sonar_schedule();
+#endif
 #endif
 }

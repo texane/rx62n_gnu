@@ -35,16 +35,21 @@ void sonar_schedule(void)
 {
   /* CONFIG_TIMER_FREQ, 200ms */
 
-  static unsigned int pass = 0;
+/*   static unsigned int pass = 0; */
 
   unsigned int o;
   unsigned int d;
 
   /* prescaler == 2 */
-  if ((++pass) & (2 - 1)) return ;
+/*   if ((++pass) & (2 - 1)) return ; */
+/*   if ((++pass) & (4096 - 1)) return ; */
 
   if (igreboard_read_sonar(&igreboard_device, &o, &d) == -1)
+  {
+    detect_count = 0;
+    is_detected = 0;
     return ;
+  }
 
   /* by experiment, 37 a good guess */
   if (d <= 37)
