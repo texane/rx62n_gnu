@@ -1,9 +1,5 @@
 #include "config.h"
 
-/* test on the table */
-/* #define CONFIG_TABLE_TEST 1 */
-#define CONFIG_TABLE_TEST 0
-
 #include <stdint.h>
 #include "tile.h"
 #include "fsm.h"
@@ -112,10 +108,11 @@ static void wait_cord(void)
 
 static void goto_first_line(void)
 {
-#if (CONFIG_TABLE_TEST == 0)
   int16_t a, x, y;
+
   aversive_get_pos(&aversive_device, &a, &x, &y);
-#if 0 /* true game */
+
+#if 1 /* true game */
   if (is_red) x = 780;
   else x = 3000 - 780;
 #else
@@ -126,24 +123,18 @@ static void goto_first_line(void)
   if (is_red) x = 500;
   else x = 3000 - 500;
 #endif
+
   aversive_goto_xy_abs(&aversive_device, x, y);
   wait_done();
-#endif
 }
 
 
 static void turn(void)
 {
-#if (CONFIG_TABLE_TEST == 0)
   const int16_t a = is_red ? -90 : 90;
   igreboard_open_gripper(&igreboard_device);
   aversive_turn(&aversive_device, a);
   wait_done();
-#else
-  const unsigned int msecs = swatch_get_msecs();
-  igreboard_open_gripper(&igreboard_device);
-  while (swatch_get_msecs() - msecs < 1000) ;
-#endif
 }
 
 
@@ -238,6 +229,13 @@ static inline int16_t clamp_y(int16_t y)
   return y;
 }
 
+static inline int16_t clamp_a(int16_t a)
+{
+  int16_t mod = a % 360;
+  if (mod < 0) mod = 360 + a;
+  return mod;
+}
+
 static inline unsigned int is_left_red(void)
 {
   /* does not depend on the color */
@@ -256,6 +254,7 @@ static void do_putpawn_angle(int16_t a)
   aversive_move_forward(&aversive_device, 70);
   wait_done();
 
+  igreboard_open_gripper(&igreboard_device);
   swatch_wait_msecs(1000);
 
   aversive_move_forward(&aversive_device, -150);
@@ -275,40 +274,20 @@ static inline void do_putpawn_right(void)
   do_putpawn_angle(-90);
 }
 
-static void center_angular(void)
+static void orient_270(void)
 {
-  int16_t a, x, y;
+  /* orient south */
+
+  int16_t a, x, y, beta;
   aversive_get_pos(&aversive_device, &a, &x, &y);
 
-#if 1
-  lcd_string(3, 0, "__angle__");
-  lcd_string(4, 0, "         ");
-  lcd_string(5, 0, "         ");
-  lcd_uint16(4, 0, a);
-#endif
+  a = clamp_a(a);
 
-  if (is_red)
-  {
-    if ((a <= -90) && (a >= -180)) a = -a - 90;
-    else if ((a > -90) && (a <= 0)) a = -(90 + a);
-  }
-  else
-  {
-#if 0
-    if ((a >= 180) && (a <= 270)) a = 270 - a;
-    else if ((a >= 270) && (a < 360)) a = -(a - 270);
-#else
-    if ((a >= -180) && (a <= -90)) a = -a - 90;
-    else if ((a >= -90) && (a < 0)) a = -(90 - a);
-#endif
-  }
+  if (a > 270) beta = 270 - a;
+  else if (a < 90) beta = -(90 + a);
+  else beta = 270 - a;
 
-#if 1
-  lcd_uint16(5, 0, a);
-  while (1) ;
-#endif
-
-  aversive_turn(&aversive_device, a);
+  aversive_turn(&aversive_device, beta);
   wait_done();
 }
 
@@ -321,8 +300,8 @@ static void center_tile(void)
 
   aversive_get_pos(&aversive_device, &posa, &posx, &posy);
 
-#if 0
-  center_angular();
+#if 1
+  orient_270();
 #endif
 
   tilex = clamp_x(posx);
