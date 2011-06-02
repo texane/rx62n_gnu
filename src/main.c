@@ -141,6 +141,8 @@ int main(void)
   unit_pos();
 #elif CONFIG_UNIT_HOMOL
   unit_homol();
+#elif CONFIG_UNIT_ROTATE
+  unit_rotate();
 #else
   while (1) asm("wait\n");
 #endif

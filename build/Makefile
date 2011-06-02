@@ -42,6 +42,7 @@ OBJS =				\
 	../src/unit_sensor.o	\
 	../src/unit_latpawn.o	\
 	../src/unit_pos.o	\
+	../src/unit_rotate.o	\
 	../src/unit_homol.o	\
 	../src/interrupt_table.o
 
