@@ -70,10 +70,9 @@ static void initialize(void)
 {
   /* initialize globals */
   igreboard_get_color_switch(&igreboard_device, &is_red);
-  igreboard_enable_sonar(&igreboard_device);
 
 #if CONFIG_ENABLE_SONAR
-  sonar_initialize();
+  sonar_finalize();
 #endif
 }
 
@@ -81,10 +80,10 @@ static void initialize(void)
 static void first_pos(void)
 {
   int16_t posa, posx, posy;
-  if (is_red) aversive_set_pos(&aversive_device, 0, 97, 0);
-  else aversive_set_pos(&aversive_device, 180, 3000 - 97, 0);
+  if (is_red) aversive_set_pos(&aversive_device, 0, 50 + 97, 0);
+  else aversive_set_pos(&aversive_device, 180, 3000 - (50 + 97), 0);
   aversive_get_pos(&aversive_device, &posa, &posx, &posy);
-  aversive_set_pos(&aversive_device, posa, posx, 2100 - 160);
+  aversive_set_pos(&aversive_device, posa, posx, 2100 - (160 + 50));
 }
 
 
@@ -101,8 +100,13 @@ static void goto_first_line(void)
 #if (CONFIG_TABLE_TEST == 0)
   int16_t a, x, y;
   aversive_get_pos(&aversive_device, &a, &x, &y);
-  if (is_red) x = 700;
-  else x = 3000 - 700;
+#if 1 /* TABLE */
+  if (is_red) x = 780;
+  else x = 3000 - 780;
+#else
+  if (is_red) x = 500;
+  else x = 3000 - 500;
+#endif
   aversive_goto_xy_abs(&aversive_device, x, y);
   wait_done();
 #endif
@@ -154,7 +158,7 @@ static void move_until(void)
 
     /* position */
     aversive_get_pos(&aversive_device, &a, &x, &y);
-    if (y <= 200)
+    if (y <= 400)
     {
       done_reason = DONE_REASON_POS;
       break ;
@@ -221,11 +225,15 @@ static inline unsigned int is_left_red(void)
 
 static void do_putpawn_left(void)
 {
-  const int16_t a = is_red ? -90 : 90;
+  const int16_t a = 90;
+
+/*   aversive_move_forward(&aversive_device, 110); */
+/*   wait_done(); */
+
   aversive_turn(&aversive_device, a);
   wait_done();
 
-  aversive_move_forward(&aversive_device, 100);
+  aversive_move_forward(&aversive_device, 70);
   wait_done();
 
   const unsigned int msecs = swatch_get_msecs();
@@ -241,11 +249,15 @@ static void do_putpawn_left(void)
 
 static void do_putpawn_right(void)
 {
-  const int16_t a = is_red ? 90 : -90;
+  const int16_t a = -90;
+
+/*   aversive_move_forward(&aversive_device, 110); */
+/*   wait_done(); */
+
   aversive_turn(&aversive_device, a);
   wait_done();
 
-  aversive_move_forward(&aversive_device, 100);
+  aversive_move_forward(&aversive_device, 70);
   wait_done();
 
   const unsigned int msecs = swatch_get_msecs();
@@ -259,8 +271,24 @@ static void do_putpawn_right(void)
   wait_done();
 }
 
+static void center_tile(void)
+{
+  int16_t posa, posx, posy;
+  int16_t d;
+
+  aversive_get_pos(&aversive_device, &posa, &posx, &posy);
+  d = (2100 - posy) % 350;
+  if (d < 200)
+  {
+    aversive_move_forward(&aversive_device, d);
+    wait_done();
+  }
+}
+
 static void do_putpawn(void)
 {
+  center_tile();
+
   if (is_red)
   {
     if (is_left_red()) do_putpawn_left();
@@ -363,6 +391,11 @@ void unit_homol(void)
   initialize();
   first_pos();
   wait_cord();
+
+#if CONFIG_ENABLE_SONAR
+  sonar_initialize();
+#endif
+
   swatch_start_game();
   goto_first_line();
   turn();
