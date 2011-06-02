@@ -115,10 +115,14 @@ static void goto_first_line(void)
 #if (CONFIG_TABLE_TEST == 0)
   int16_t a, x, y;
   aversive_get_pos(&aversive_device, &a, &x, &y);
-#if 1 /* TABLE */
+#if 0 /* true game */
   if (is_red) x = 780;
   else x = 3000 - 780;
 #else
+# warning TOREMOVE_FOR_MATCH
+# warning TOREMOVE_FOR_MATCH
+# warning TOREMOVE_FOR_MATCH
+# warning TOREMOVE_FOR_MATCH
   if (is_red) x = 500;
   else x = 3000 - 500;
 #endif
@@ -244,22 +248,15 @@ static inline unsigned int is_left_red(void)
   return ((y / 350) & 1) == 0;
 }
 
-static void do_putpawn_left(void)
+static void do_putpawn_angle(int16_t a)
 {
-  const int16_t a = 90;
-
-/*   aversive_move_forward(&aversive_device, 110); */
-/*   wait_done(); */
-
   aversive_turn(&aversive_device, a);
   wait_done();
 
   aversive_move_forward(&aversive_device, 70);
   wait_done();
 
-  const unsigned int msecs = swatch_get_msecs();
-  igreboard_open_gripper(&igreboard_device);
-  while (swatch_get_msecs() - msecs < 1000) ;
+  swatch_wait_msecs(1000);
 
   aversive_move_forward(&aversive_device, -150);
   wait_done();
@@ -268,28 +265,14 @@ static void do_putpawn_left(void)
   wait_done();
 }
 
-static void do_putpawn_right(void)
+static inline void do_putpawn_left(void)
 {
-  const int16_t a = -90;
+  do_putpawn_angle(90);
+}
 
-/*   aversive_move_forward(&aversive_device, 110); */
-/*   wait_done(); */
-
-  aversive_turn(&aversive_device, a);
-  wait_done();
-
-  aversive_move_forward(&aversive_device, 70);
-  wait_done();
-
-  const unsigned int msecs = swatch_get_msecs();
-  igreboard_open_gripper(&igreboard_device);
-  while (swatch_get_msecs() - msecs < 1000) ;
-
-  aversive_move_forward(&aversive_device, -150);
-  wait_done();
-
-  aversive_turn(&aversive_device, -a);
-  wait_done();
+static inline void do_putpawn_right(void)
+{
+  do_putpawn_angle(-90);
 }
 
 static void center_angular(void)
@@ -373,29 +356,6 @@ static void do_putpawn(void)
     if (is_left_red()) do_putpawn_right();
     else do_putpawn_left();
   }
-
-#if 0
-  unsigned int msecs;
-
-  aversive_turn(&aversive_device, 90);
-  wait_done();
-
-  aversive_move_forward(&aversive_device, 100);
-  wait_done();
-
-  msecs = swatch_get_msecs();
-  igreboard_open_gripper(&igreboard_device);
-  while ((swatch_get_msecs() - msecs) < 1000) ;
-
-  aversive_move_forward(&aversive_device, -150);
-  wait_done();
-
-  aversive_turn(&aversive_device, -90);
-  wait_done();
-
-  aversive_move_forward(&aversive_device, 100);
-  wait_done();
-#endif
 }
 
 
