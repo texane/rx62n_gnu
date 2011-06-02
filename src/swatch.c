@@ -37,3 +37,16 @@ void swatch_start_game(void)
 {
   start_msecs = swatch_get_msecs();
 }
+
+unsigned int swatch_wait_msecs(unsigned int msecs)
+{
+  const unsigned int prev_msecs = swatch_get_msecs();
+  unsigned int cur_msecs = 0;
+  while (1)
+  {
+    cur_msecs = swatch_get_msecs();
+    if ((cur_msecs - prev_msecs) >= msecs) break ;
+  }
+
+  return cur_msecs;
+}

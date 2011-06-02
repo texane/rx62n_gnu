@@ -8,6 +8,7 @@ unsigned int swatch_get_msecs(void);
 unsigned int swatch_get_game_msecs(void);
 unsigned int swatch_is_game_over(void);
 void swatch_start_game(void);
+unsigned int swatch_wait_msecs(unsigned int);
 
 
 #endif /* ! SWATCH_H_INCLUDED */

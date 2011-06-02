@@ -96,14 +96,9 @@ static void wait_cord(void)
   fsm_execute_one(&fsm);
 #else
   unsigned int is_pushed;
-  unsigned int prev_msecs = swatch_get_msecs();
-  unsigned int msecs;
   while (1)
   {
-    msecs = swatch_get_msecs();
-    if ((msecs - prev_msecs) < 100) continue ;
-    prev_msecs = msecs;
-
+    swatch_wait_msecs(100);
     igreboard_get_cord_switch(&igreboard_device, &is_pushed);
     if (is_pushed == 0)
     {
