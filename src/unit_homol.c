@@ -251,13 +251,13 @@ static void do_putpawn_angle(int16_t a)
   aversive_turn(&aversive_device, a);
   wait_done();
 
-  aversive_move_forward(&aversive_device, 70);
+  aversive_move_forward(&aversive_device, 20);
   wait_done();
 
   igreboard_open_gripper(&igreboard_device);
   swatch_wait_msecs(1000);
 
-  aversive_move_forward(&aversive_device, -150);
+  aversive_move_forward(&aversive_device, -160);
   wait_done();
 
   aversive_turn(&aversive_device, -a);
