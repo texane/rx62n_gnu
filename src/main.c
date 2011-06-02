@@ -123,6 +123,8 @@ int main(void)
   unit_square();
 #elif CONFIG_UNIT_TAKEPAWN
   unit_takepawn();
+#elif CONFIG_UNIT_PUTPAWN
+  unit_putpawn();
 #elif CONFIG_UNIT_FIRSTPOS
   unit_firstpos();
 #elif CONFIG_UNIT_IGREBOARD
@@ -143,6 +145,8 @@ int main(void)
   unit_homol();
 #elif CONFIG_UNIT_ROTATE
   unit_rotate();
+#elif CONFIG_UNIT_CENTER
+  unit_center();
 #else
   while (1) asm("wait\n");
 #endif

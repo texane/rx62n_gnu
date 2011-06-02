@@ -15,6 +15,8 @@ void unit_latpawn(void);
 void unit_pos(void);
 void unit_homol(void);
 void unit_rotate(void);
+void unit_putpawn(void);
+void unit_center(void);
 
 
 #endif /* UNIT_H_INCLUDED */

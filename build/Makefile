@@ -44,6 +44,7 @@ OBJS =				\
 	../src/unit_pos.o	\
 	../src/unit_rotate.o	\
 	../src/unit_homol.o	\
+	../src/unit_center.o	\
 	../src/interrupt_table.o
 
 all : $(ELF).elf
