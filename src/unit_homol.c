@@ -5,6 +5,7 @@
 #define CONFIG_TABLE_TEST 0
 
 #include <stdint.h>
+#include "tile.h"
 #include "fsm.h"
 #include "swatch.h"
 #include "aversive.h"
@@ -100,7 +101,7 @@ static void goto_first_line(void)
 #if (CONFIG_TABLE_TEST == 0)
   int16_t a, x, y;
   aversive_get_pos(&aversive_device, &a, &x, &y);
-#if 1 /* TABLE */
+#if 0 /* TABLE */
   if (is_red) x = 780;
   else x = 3000 - 780;
 #else
@@ -205,6 +206,12 @@ static void move_until(void)
     aversive_stop(&aversive_device);
 }
 
+static inline int16_t clamp_x(int16_t x)
+{
+  if (x < 0) x = 0;
+  else if (x > 3000) x = 3000;
+  return x;
+}
 
 static inline int16_t clamp_y(int16_t y)
 {
@@ -273,16 +280,28 @@ static void do_putpawn_right(void)
 
 static void center_tile(void)
 {
+  unsigned int tilex, tiley;
   int16_t posa, posx, posy;
+  int16_t midx, midy;
   int16_t d;
 
   aversive_get_pos(&aversive_device, &posa, &posx, &posy);
-  d = (2100 - posy) % 350;
-  if (d < 200)
-  {
-    aversive_move_forward(&aversive_device, d);
-    wait_done();
-  }
+
+  tilex = clamp_x(posx);
+  tiley = clamp_y(posy);
+  world_to_tile(&tilex, &tiley);
+
+#if 0
+  lcd_uint16(1, 0, tilex);
+  lcd_uint16(2, 0, tiley);
+  while (1) ;
+#endif
+
+  midy = tiley * 350 + 175;
+  if (midy > posy) d = -(midy - posy);
+  else d = posy - midy;
+  aversive_move_forward(&aversive_device, d);
+  wait_done();
 }
 
 static void do_putpawn(void)
