@@ -90,9 +90,28 @@ static void first_pos(void)
 
 static void wait_cord(void)
 {
+#if 0 /* dont use automata, since scheduled */
   fsm_t fsm;
   waitcord_fsm_initialize(&fsm);
   fsm_execute_one(&fsm);
+#else
+  unsigned int is_pushed;
+  unsigned int prev_msecs = swatch_get_msecs();
+  unsigned int msecs;
+  while (1)
+  {
+    msecs = swatch_get_msecs();
+    if ((msecs - prev_msecs) < 100) continue ;
+    prev_msecs = msecs;
+
+    igreboard_get_cord_switch(&igreboard_device, &is_pushed);
+    if (is_pushed == 0)
+    {
+      swatch_start_game();
+      break ;
+    }
+  }
+#endif
 }
 
 
@@ -101,7 +120,7 @@ static void goto_first_line(void)
 #if (CONFIG_TABLE_TEST == 0)
   int16_t a, x, y;
   aversive_get_pos(&aversive_device, &a, &x, &y);
-#if 0 /* TABLE */
+#if 1 /* TABLE */
   if (is_red) x = 780;
   else x = 3000 - 780;
 #else
@@ -278,6 +297,43 @@ static void do_putpawn_right(void)
   wait_done();
 }
 
+static void center_angular(void)
+{
+  int16_t a, x, y;
+  aversive_get_pos(&aversive_device, &a, &x, &y);
+
+#if 1
+  lcd_string(3, 0, "__angle__");
+  lcd_string(4, 0, "         ");
+  lcd_string(5, 0, "         ");
+  lcd_uint16(4, 0, a);
+#endif
+
+  if (is_red)
+  {
+    if ((a <= -90) && (a >= -180)) a = -a - 90;
+    else if ((a > -90) && (a <= 0)) a = -(90 + a);
+  }
+  else
+  {
+#if 0
+    if ((a >= 180) && (a <= 270)) a = 270 - a;
+    else if ((a >= 270) && (a < 360)) a = -(a - 270);
+#else
+    if ((a >= -180) && (a <= -90)) a = -a - 90;
+    else if ((a >= -90) && (a < 0)) a = -(90 - a);
+#endif
+  }
+
+#if 1
+  lcd_uint16(5, 0, a);
+  while (1) ;
+#endif
+
+  aversive_turn(&aversive_device, a);
+  wait_done();
+}
+
 static void center_tile(void)
 {
   unsigned int tilex, tiley;
@@ -286,6 +342,10 @@ static void center_tile(void)
   int16_t d;
 
   aversive_get_pos(&aversive_device, &posa, &posx, &posy);
+
+#if 0
+  center_angular();
+#endif
 
   tilex = clamp_x(posx);
   tiley = clamp_y(posy);
