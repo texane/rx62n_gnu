@@ -131,10 +131,8 @@ static inline unsigned int min(unsigned int a, unsigned int b)
   return a < b ? a : b;
 }
 
-static void orient_270(void)
+static void orient_south(void)
 {
-  /* orient south */
-
   int16_t a, x, y, beta;
   aversive_get_pos(&aversive_device, &a, &x, &y);
 
@@ -149,17 +147,32 @@ static void orient_270(void)
 }
 
 
+static void orient_north(void)
+{
+  int16_t a, x, y, beta;
+  aversive_get_pos(&aversive_device, &a, &x, &y);
+
+  a = clamp_a(a);
+
+  if (a < 90) beta = 90 - a;
+  else if (a < 270) beta = -(a - 90);
+  else beta = 90 + 360 - a;
+
+  aversive_turn(&aversive_device, beta);
+  wait_done();
+}
+
 static void do_putpawn(int16_t);
 
 static void do_first_pawn(void)
 {
-  const int16_t a = is_red ? 4 : -5;
+  const int16_t a = is_red ? 6 : -7;
 
   fsm_t fsm;
 
   takepawn_fsm_initialize(&fsm);
   fsm_execute_one(&fsm);
-  orient_270();
+  orient_south();
   aversive_move_forward(&aversive_device, -50);
   wait_done();
   do_putpawn(is_red ? 70 : 60);
@@ -246,7 +259,7 @@ static void move_until(void)
 
     /* position */
     aversive_get_pos(&aversive_device, &a, &x, &y);
-    if (y <= 400)
+    if (y <= 450)
     {
       done_reason = DONE_REASON_POS;
       break ;
@@ -340,19 +353,11 @@ static void center_tile(void)
 
   aversive_get_pos(&aversive_device, &posa, &posx, &posy);
 
-#if 1
-  orient_270();
-#endif
+  orient_south();
 
   tilex = clamp_x(posx);
   tiley = clamp_y(posy);
   world_to_tile(&tilex, &tiley);
-
-#if 0
-  lcd_uint16(1, 0, tilex);
-  lcd_uint16(2, 0, tiley);
-  while (1) ;
-#endif
 
   midy = tiley * 350 + 175;
   if (midy > posy) d = -(midy - posy);
