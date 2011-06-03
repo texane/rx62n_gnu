@@ -149,23 +149,30 @@ static void orient_270(void)
 }
 
 
-static void do_putpawn(void);
+static void do_putpawn(int16_t);
 
 static void do_first_pawn(void)
 {
+  const int16_t a = is_red ? 3 : -3;
+
   fsm_t fsm;
+
   takepawn_fsm_initialize(&fsm);
   fsm_execute_one(&fsm);
   orient_270();
   aversive_move_forward(&aversive_device, -50);
   wait_done();
-  do_putpawn();
+  do_putpawn(70);
+
+  /* move a bit */
+  aversive_turn(&aversive_device, a);
+  wait_done();
 }
 
 
 static unsigned int goto_first_line(void)
 {
-  unsigned int fl, fr;
+  unsigned int dist;
   int16_t a, x, y;
   int is_done;
   unsigned int do_turn = 1;
@@ -189,29 +196,18 @@ static unsigned int goto_first_line(void)
     aversive_is_traj_done(&aversive_device, &is_done);
     if (is_done) break ;
 
-    fl = sharp_read_fl();
-    fr = sharp_read_fr();
+    if (is_red) dist = sharp_read_fr();
+    else dist = sharp_read_fl();
 
-#define PAWN_DIST 150
-    if (min(fl, fr) <= PAWN_DIST)
+#define PAWN_DIST 170
+    if (dist <= PAWN_DIST)
     {
       do_turn = 0;
       aversive_stop(&aversive_device);
       do_first_pawn();
-#if 0
-      orient_270();
-      aversive_goto_xy_abs(&aversive_device, x, y);
-      goto wait_traj_only;
-#else
       break ;
-#endif
     }
   }
-
-#if 0
- wait_traj_only:
-  wait_done();
-#endif
 
   return do_turn;
 }
@@ -306,12 +302,12 @@ static inline unsigned int is_left_red(void)
   return ((y / 350) & 1) == 0;
 }
 
-static void do_putpawn_angle(int16_t a)
+static void do_putpawn_angle(int16_t d, int16_t a)
 {
   aversive_turn(&aversive_device, a);
   wait_done();
 
-  aversive_move_forward(&aversive_device, 20);
+  aversive_move_forward(&aversive_device, d + 20);
   wait_done();
 
   igreboard_open_gripper(&igreboard_device);
@@ -324,14 +320,14 @@ static void do_putpawn_angle(int16_t a)
   wait_done();
 }
 
-static inline void do_putpawn_left(void)
+static inline void do_putpawn_left(int16_t d)
 {
-  do_putpawn_angle(90);
+  do_putpawn_angle(d, 90);
 }
 
-static inline void do_putpawn_right(void)
+static inline void do_putpawn_right(int16_t d)
 {
-  do_putpawn_angle(-90);
+  do_putpawn_angle(d, -90);
 }
 
 static void center_tile(void)
@@ -364,19 +360,19 @@ static void center_tile(void)
   wait_done();
 }
 
-static void do_putpawn(void)
+static void do_putpawn(int16_t d)
 {
   center_tile();
 
   if (is_red)
   {
-    if (is_left_red()) do_putpawn_left();
-    else do_putpawn_right();
+    if (is_left_red()) do_putpawn_left(d);
+    else do_putpawn_right(d);
   }
   else
   {
-    if (is_left_red()) do_putpawn_right();
-    else do_putpawn_left();
+    if (is_left_red()) do_putpawn_right(d);
+    else do_putpawn_left(d);
   }
 }
 
@@ -412,7 +408,7 @@ static unsigned int handle_done(void)
       fsm_t fsm;
       takepawn_fsm_initialize(&fsm);
       fsm_execute_one(&fsm);
-      do_putpawn();
+      do_putpawn(0);
       can_redo = 1;
       break ;
     }
@@ -422,7 +418,7 @@ static unsigned int handle_done(void)
       const unsigned int msecs = swatch_get_msecs();
       igreboard_close_gripper(&igreboard_device);
       while ((swatch_get_msecs() - msecs) < 1000) ;
-      do_putpawn();
+      do_putpawn(0);
       can_redo = 1;
       break ;
     }
