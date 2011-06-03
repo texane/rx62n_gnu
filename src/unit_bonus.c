@@ -54,6 +54,7 @@ static int wait_done(void)
 }
 
 
+#if 0 /* unit */
 static void initialize(void)
 {
   /* initialize globals */
@@ -63,6 +64,7 @@ static void initialize(void)
   sonar_finalize();
 #endif
 }
+#endif
 
 
 static void finalize(void)
@@ -293,8 +295,18 @@ static void take_pawn(void)
 
 void unit_bonus(void)
 {
+#if 0
   initialize();
   first_pos();
+#else
+  igreboard_get_color_switch(&igreboard_device, &is_red);
+  if (is_red) aversive_turn(&aversive_device, 90);
+  else aversive_turn(&aversive_device, -90);
+  wait_done();
+  aversive_move_forward(&aversive_device, 400);
+  wait_done();
+#endif
+
   orient_north();
 
   if (move_until_pawn() == 0)

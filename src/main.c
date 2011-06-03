@@ -147,6 +147,8 @@ int main(void)
   unit_rotate();
 #elif CONFIG_UNIT_CENTER
   unit_center();
+#elif CONFIG_UNIT_BONUS
+  unit_bonus();
 #else
   while (1) asm("wait\n");
 #endif

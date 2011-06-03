@@ -17,6 +17,7 @@ void unit_homol(void);
 void unit_rotate(void);
 void unit_putpawn(void);
 void unit_center(void);
+void unit_bonus(void);
 
 
 #endif /* UNIT_H_INCLUDED */

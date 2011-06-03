@@ -10,6 +10,7 @@
 #include "sonar.h"
 #include "sharp.h"
 #include "lcd.h"
+#include "unit.h"
 
 
 extern igreboard_dev_t igreboard_device;
@@ -19,6 +20,7 @@ extern aversive_dev_t aversive_device;
 /* globals */
 
 static unsigned int is_red;
+static unsigned int direction;
 
 #define DONE_REASON_GAMEOVER 0
 #define DONE_REASON_SONAR 1
@@ -62,6 +64,76 @@ static int wait_done(void)
   return 0;
 }
 
+static inline unsigned int min(unsigned int a, unsigned int b)
+{
+  return a < b ? a : b;
+}
+
+static int wait_done_or_detected(int16_t x, int16_t y)
+{
+  aversive_dev_t* const dev = &aversive_device;
+  unsigned int fl, fr;
+  int is_done;
+
+ restart_goto:
+  for (is_done = 0; is_done == 0; )
+  {
+    wait_abit();
+
+    /* gameover */
+    if (swatch_is_game_over())
+    {
+    game_is_over_label:
+      done_reason = DONE_REASON_GAMEOVER;
+      return -1;
+    }
+
+#if CONFIG_ENABLE_SONAR
+    /* sonar */
+    sonar_schedule();
+    if (sonar_is_detected())
+    {
+      aversive_stop(&aversive_device);
+    do_sonar:
+      while (sonar_is_detected())
+      {
+	swatch_wait_msecs(100);
+	if (swatch_is_game_over()) goto game_is_over_label;
+      }
+      aversive_goto_forward_xy_abs(&aversive_device, x, y);
+      goto restart_goto;
+    }
+#endif /* CONFIG_ENABLE_SONAR */
+
+    /* sharps */
+    fl = sharp_read_fl();
+    fr = sharp_read_fr();
+#define PAWN_DIST 170
+    if (min(fl, fr) <= PAWN_DIST)
+    {
+      aversive_stop(&aversive_device);
+
+#if CONFIG_ENABLE_SONAR
+      sonar_schedule();
+      if (sonar_is_detected()) goto do_sonar;
+#endif /* CONFIG_ENABLE_SONAR */
+
+      aversive_turn(&aversive_device, is_red ? 90 : -90);
+      wait_done();
+      aversive_move_forward(&aversive_device, 300);
+      wait_done();
+      aversive_turn(&aversive_device, is_red ? -90 : 90);
+      wait_done();
+
+      goto restart_goto;
+    }
+
+    aversive_is_traj_done(dev, &is_done);
+  }
+
+  return 0;
+}
+
 
 static void initialize(void)
 {
@@ -71,6 +143,9 @@ static void initialize(void)
 #if CONFIG_ENABLE_SONAR
   sonar_finalize();
 #endif
+
+  /* descending */
+  direction = 0;
 }
 
 
@@ -124,11 +199,6 @@ static inline int16_t clamp_a(int16_t a)
   int16_t mod = a % 360;
   if (mod < 0) mod = 360 + a;
   return mod;
-}
-
-static inline unsigned int min(unsigned int a, unsigned int b)
-{
-  return a < b ? a : b;
 }
 
 static void orient_south(void)
@@ -259,7 +329,12 @@ static void move_until(void)
 
     /* position */
     aversive_get_pos(&aversive_device, &a, &x, &y);
-    if (y <= 450)
+    if ((direction == 0) && (y <= 500))
+    {
+      done_reason = DONE_REASON_POS;
+      break ;
+    }
+    else if ((direction == 1) && (y >= 2100 - 350))
     {
       done_reason = DONE_REASON_POS;
       break ;
@@ -278,7 +353,6 @@ static void move_until(void)
     /* sharp */
     fl = sharp_read_fl();
     fr = sharp_read_fr();
-#define PAWN_DIST 170
     if (min(fl, fr) <= PAWN_DIST)
     {
       done_reason = DONE_REASON_SHARP;
@@ -313,7 +387,8 @@ static inline unsigned int is_left_red(void)
   aversive_get_pos(&aversive_device, &a, &x, &y);
   y = 2100 - clamp_y(y);
   /* even left reds */
-  return ((y / 350) & 1) == 0;
+  if (direction == 0) return ((y / 350) & 1) == 0;
+  else return ((y / 350) & 1) == 1;
 }
 
 static void do_putpawn_angle(int16_t d, int16_t a)
@@ -353,7 +428,8 @@ static void center_tile(void)
 
   aversive_get_pos(&aversive_device, &posa, &posx, &posy);
 
-  orient_south();
+  if (direction == 0) orient_south();
+  else orient_north();
 
   tilex = clamp_x(posx);
   tiley = clamp_y(posy);
@@ -387,11 +463,44 @@ static unsigned int handle_done(void)
 {
   unsigned int can_redo = 0;
 
+ switch_done_reason:
   switch (done_reason)
   {
   default:
   case DONE_REASON_POS:
+    {
+#if 0
+      if (direction == 0)
+      {
+	int16_t x;
+	if (is_red) x = 3000 - 700;
+	else x = 700;
+
+	/* const int16_t x = is_red ? 1200 : 3000 - 1200; */
+	/* const int16_t x = 3000 / 2; */
+	aversive_goto_forward_xy_abs(&aversive_device, x, 550);
+	if (wait_done_or_detected(x, 550)) goto switch_done_reason;
+
+	orient_north();
+	direction = 1;
+	can_redo = 1;
+	break ;
+      }
+      else if (direction == 1)
+      {
+	/* todo */
+      }
+#endif
+
+      unit_bonus();
+
+      goto case_done_reason_gameover;
+
+      break ;
+    }
+
   case DONE_REASON_GAMEOVER:
+  case_done_reason_gameover:
     {
       aversive_stop(&aversive_device);
       aversive_set_asserv(&aversive_device, 0);
@@ -463,6 +572,5 @@ void unit_homol(void)
   move_until();
   can_redo = handle_done();
   if (can_redo) goto redo_move;
-
   while (1) asm("nop");
 }
