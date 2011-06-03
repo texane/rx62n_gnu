@@ -42,16 +42,15 @@ void unit_rotate(void)
 {
   int16_t a, x, y;
 
-  aversive_get_pos(&aversive_device, &a, &x, &y);
-  aversive_turn(&aversive_device, 180);
+  aversive_turn(&aversive_device, -93);
   wait_done();
 
-  aversive_get_pos(&aversive_device, &a, &x, &y);
-  lcd_uint16(1, 0, a);
-
-  aversive_turn(&aversive_device, -180);
+  aversive_turn(&aversive_device, -93);
   wait_done();
 
-  aversive_get_pos(&aversive_device, &a, &x, &y);
-  lcd_uint16(1, 0, a);
+  aversive_turn(&aversive_device, -93);
+  wait_done();
+
+  aversive_turn(&aversive_device, -93);
+  wait_done();
 }

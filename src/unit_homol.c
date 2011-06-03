@@ -105,10 +105,70 @@ static void wait_cord(void)
 #endif
 }
 
-
-static void goto_first_line(void)
+static inline int16_t clamp_x(int16_t x)
 {
+  if (x < 0) x = 0;
+  else if (x > 3000) x = 3000;
+  return x;
+}
+
+static inline int16_t clamp_y(int16_t y)
+{
+  if (y < 0) y = 0;
+  else if (y > 2100) y = 2100;
+  return y;
+}
+
+static inline int16_t clamp_a(int16_t a)
+{
+  int16_t mod = a % 360;
+  if (mod < 0) mod = 360 + a;
+  return mod;
+}
+
+static inline unsigned int min(unsigned int a, unsigned int b)
+{
+  return a < b ? a : b;
+}
+
+static void orient_270(void)
+{
+  /* orient south */
+
+  int16_t a, x, y, beta;
+  aversive_get_pos(&aversive_device, &a, &x, &y);
+
+  a = clamp_a(a);
+
+  if (a > 270) beta = 270 - a;
+  else if (a < 90) beta = -(90 + a);
+  else beta = 270 - a;
+
+  aversive_turn(&aversive_device, beta);
+  wait_done();
+}
+
+
+static void do_putpawn(void);
+
+static void do_first_pawn(void)
+{
+  fsm_t fsm;
+  takepawn_fsm_initialize(&fsm);
+  fsm_execute_one(&fsm);
+  orient_270();
+  aversive_move_forward(&aversive_device, -50);
+  wait_done();
+  do_putpawn();
+}
+
+
+static unsigned int goto_first_line(void)
+{
+  unsigned int fl, fr;
   int16_t a, x, y;
+  int is_done;
+  unsigned int do_turn = 1;
 
   aversive_get_pos(&aversive_device, &a, &x, &y);
 
@@ -117,30 +177,52 @@ static void goto_first_line(void)
   else x = 3000 - 780;
 #else
 # warning TOREMOVE_FOR_MATCH
-# warning TOREMOVE_FOR_MATCH
-# warning TOREMOVE_FOR_MATCH
-# warning TOREMOVE_FOR_MATCH
   if (is_red) x = 500;
   else x = 3000 - 500;
 #endif
 
   aversive_goto_xy_abs(&aversive_device, x, y);
+
+  while (1)
+  {
+    wait_abit();
+    aversive_is_traj_done(&aversive_device, &is_done);
+    if (is_done) break ;
+
+    fl = sharp_read_fl();
+    fr = sharp_read_fr();
+
+#define PAWN_DIST 150
+    if (min(fl, fr) <= PAWN_DIST)
+    {
+      do_turn = 0;
+      aversive_stop(&aversive_device);
+      do_first_pawn();
+#if 0
+      orient_270();
+      aversive_goto_xy_abs(&aversive_device, x, y);
+      goto wait_traj_only;
+#else
+      break ;
+#endif
+    }
+  }
+
+#if 0
+ wait_traj_only:
   wait_done();
+#endif
+
+  return do_turn;
 }
 
 
 static void turn(void)
 {
-  const int16_t a = is_red ? -90 : 90;
+  const int16_t a = is_red ? -93 : 93;
   igreboard_open_gripper(&igreboard_device);
   aversive_turn(&aversive_device, a);
   wait_done();
-}
-
-
-static inline unsigned int min(unsigned int a, unsigned int b)
-{
-  return a < b ? a : b;
 }
 
 static void move_until(void)
@@ -187,7 +269,6 @@ static void move_until(void)
     /* sharp */
     fl = sharp_read_fl();
     fr = sharp_read_fr();
-#define PAWN_DIST 150
     if (min(fl, fr) <= PAWN_DIST)
     {
       done_reason = DONE_REASON_SHARP;
@@ -213,27 +294,6 @@ static void move_until(void)
 
   if (done_reason != DONE_REASON_TRAJ)
     aversive_stop(&aversive_device);
-}
-
-static inline int16_t clamp_x(int16_t x)
-{
-  if (x < 0) x = 0;
-  else if (x > 3000) x = 3000;
-  return x;
-}
-
-static inline int16_t clamp_y(int16_t y)
-{
-  if (y < 0) y = 0;
-  else if (y > 2100) y = 2100;
-  return y;
-}
-
-static inline int16_t clamp_a(int16_t a)
-{
-  int16_t mod = a % 360;
-  if (mod < 0) mod = 360 + a;
-  return mod;
 }
 
 static inline unsigned int is_left_red(void)
@@ -272,23 +332,6 @@ static inline void do_putpawn_left(void)
 static inline void do_putpawn_right(void)
 {
   do_putpawn_angle(-90);
-}
-
-static void orient_270(void)
-{
-  /* orient south */
-
-  int16_t a, x, y, beta;
-  aversive_get_pos(&aversive_device, &a, &x, &y);
-
-  a = clamp_a(a);
-
-  if (a > 270) beta = 270 - a;
-  else if (a < 90) beta = -(90 + a);
-  else beta = 270 - a;
-
-  aversive_turn(&aversive_device, beta);
-  wait_done();
 }
 
 static void center_tile(void)
@@ -400,6 +443,7 @@ static unsigned int handle_done(void)
 void unit_homol(void)
 {
   unsigned int can_redo;
+  unsigned int do_turn;
 
   initialize();
   first_pos();
@@ -410,8 +454,8 @@ void unit_homol(void)
 #endif
 
   swatch_start_game();
-  goto_first_line();
-  turn();
+  do_turn = goto_first_line();
+  if (do_turn) turn();
 
  redo_move:
   move_until();

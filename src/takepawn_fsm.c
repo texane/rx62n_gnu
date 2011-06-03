@@ -24,6 +24,7 @@ typedef struct takepawn_fsm
     OPEN_GRIPPER,
     SEARCH,
     CENTER,
+    CENTER_2,
     MOVE,
     GRIPPER_SWITCH,
     CLOSE_GRIPPER,
@@ -33,6 +34,8 @@ typedef struct takepawn_fsm
     FAILED,
     DONE
   } state;
+
+  unsigned int center2_pass;
 
   /* store the previous or next state */
   unsigned int prev_state;
@@ -147,21 +150,64 @@ static void takepawn_fsm_next(void* data)
       if (fsm->fl > fsm->fr) d = fsm->fl - fsm->fr;
       else d = fsm->fr - fsm->fl;
 
-      if (d < 50)
+      if (d < 60)
       {
 	fsm->state = MOVE;
 	break ;
       }
 
       /* angle roughly proportional to distance */
-      if (d > 100) fsm->alpha = 10;
+      if (d > 100) fsm->alpha = 8;
       else if (d > 75) fsm->alpha = 7;
-      else fsm->alpha = 4;
+      else fsm->alpha = 6;
 
       if (fsm->fl > fsm->fr) fsm->alpha *= -1;
 
       aversive_turn(&aversive_device, fsm->alpha);
-      fsm->prev_state = CENTER;
+
+      fsm->center2_pass = 0;
+      fsm->prev_state = CENTER_2;
+      fsm->state = WAIT_TRAJ;
+
+      break ;
+    }
+
+  case CENTER_2:
+    {
+      unsigned int d;
+
+      lcd_string(3, 0, "center2     ");
+
+      /* turn until the 2 read approx the same distance */
+      fsm->fl = sharp_read_fl();
+      fsm->fr = sharp_read_fr();
+
+      /* in case of perfectly centered, we save the previous distance */
+      if (fsm->fl != (unsigned int)-1) fsm->saved_dist = fsm->fl;
+
+      if (++fsm->center2_pass == 20)
+      {
+	fsm->state = MOVE;
+	break ;
+      }
+
+      if (fsm->fl > fsm->fr) d = fsm->fl - fsm->fr;
+      else d = fsm->fr - fsm->fl;
+
+      if (d < 60)
+      {
+	fsm->state = MOVE;
+	break ;
+      }
+
+      /* angle roughly proportional to distance */
+      if (d > 100) fsm->alpha = 4;
+      else fsm->alpha = 3;
+
+      if (fsm->fl > fsm->fr) fsm->alpha *= -1;
+
+      aversive_turn(&aversive_device, fsm->alpha);
+      fsm->prev_state = CENTER_2;
       fsm->state = WAIT_TRAJ;
 
       break ;
@@ -171,13 +217,17 @@ static void takepawn_fsm_next(void* data)
     {
       /* assume centered, move forward */
 
-      lcd_string(3, 0, "move         ");
+      lcd_string(3, 0, "move     ");
 
       /* if perfectly centered */
       if (fsm->fl == (unsigned int)-1)
       {
+	if (fsm->saved_dist == 0) fsm->saved_dist = 50;
+
 	aversive_move_forward(&aversive_device, fsm->saved_dist);
-	fsm->prev_state = CLOSE_GRIPPER;
+	
+	/* fsm->prev_state = CLOSE_GRIPPER; */
+	fsm->prev_state = CENTER;
       }
       else /* not perfectly centered */
       {

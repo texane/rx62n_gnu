@@ -37,8 +37,9 @@
 
 #if (CONFIG_ENABLE_SONAR == 0)
 # warning TOREMOVE_FOR_MATCH
-# warning TOREMOVE_FOR_MATCH
-# warning TOREMOVE_FOR_MATCH
+#endif
+
+#if (CONFIG_UNIT_HOMOL == 0)
 # warning TOREMOVE_FOR_MATCH
 #endif
 
