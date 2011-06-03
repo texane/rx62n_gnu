@@ -153,7 +153,7 @@ static void do_putpawn(int16_t);
 
 static void do_first_pawn(void)
 {
-  const int16_t a = is_red ? 3 : -3;
+  const int16_t a = is_red ? 4 : -5;
 
   fsm_t fsm;
 
@@ -162,7 +162,7 @@ static void do_first_pawn(void)
   orient_270();
   aversive_move_forward(&aversive_device, -50);
   wait_done();
-  do_putpawn(70);
+  do_putpawn(is_red ? 70 : 60);
 
   /* move a bit */
   aversive_turn(&aversive_device, a);
@@ -199,8 +199,8 @@ static unsigned int goto_first_line(void)
     if (is_red) dist = sharp_read_fr();
     else dist = sharp_read_fl();
 
-#define PAWN_DIST 170
-    if (dist <= PAWN_DIST)
+#define FIRST_PAWN_DIST 200
+    if (dist <= FIRST_PAWN_DIST)
     {
       do_turn = 0;
       aversive_stop(&aversive_device);
@@ -265,6 +265,7 @@ static void move_until(void)
     /* sharp */
     fl = sharp_read_fl();
     fr = sharp_read_fr();
+#define PAWN_DIST 170
     if (min(fl, fr) <= PAWN_DIST)
     {
       done_reason = DONE_REASON_SHARP;
