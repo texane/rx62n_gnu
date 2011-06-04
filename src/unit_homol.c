@@ -30,6 +30,8 @@ static unsigned int direction;
 #define DONE_REASON_POS 5
 static unsigned int done_reason;
 
+unsigned int last_tiley;
+
 
 /* aversive */
 
@@ -436,6 +438,8 @@ static void center_tile(void)
   tilex = clamp_x(posx);
   tiley = clamp_y(posy);
   world_to_tile(&tilex, &tiley);
+
+  last_tiley = tiley;
 
   midy = tiley * 350 + 175;
   if (midy > posy) d = -(midy - posy);

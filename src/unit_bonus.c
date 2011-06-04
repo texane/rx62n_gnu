@@ -272,10 +272,8 @@ static void move_to_bonus(void)
   int16_t a, x, y;
   int is_done;
 
-  if (is_red)
-    x = 450 + 350 * 2 + 350;
-  else
-    x = 3000 - (450 + 350 * 2 + 350);
+  x = 450 + 350 * 2 + 350;
+  if (is_red == 0) x = 3000 - x;
   y = 350 / 2;
 
  restart_move:
@@ -340,6 +338,8 @@ static void take_pawn(void)
   fsm_execute_one(&fsm);
 }
 
+extern unsigned int last_tiley;
+
 void unit_bonus(void)
 {
 #if 0
@@ -347,12 +347,52 @@ void unit_bonus(void)
   first_pos();
 #else
   igreboard_get_color_switch(&igreboard_device, &is_red);
-  if (is_red) aversive_turn(&aversive_device, 95);
-  else aversive_turn(&aversive_device, -95);
-  wait_done();
-  aversive_move_forward(&aversive_device, 510);
-  wait_done();
+
+  if (last_tiley <= 1)
+  {
+    /* filled by the last put pawn */
+#if 0
+    aversive_move_forward(&aversive_device, -380);
+    wait_done();
+    if (is_red) aversive_turn(&aversive_device, 90);
+    else aversive_turn(&aversive_device, -90);
+    wait_done();
+    aversive_move_forward(&aversive_device, 350);
+    wait_done();
+#else
+    int16_t a, x, y;
+
+    aversive_get_pos(&aversive_device, &a, &x, &y);
+    y = 350 * 2 + 350 / 2;
+    aversive_goto_xy_abs(&aversive_device, x, y);
+    wait_done();
+
+    aversive_get_pos(&aversive_device, &a, &x, &y);
+    x = 450 + 350 * 2 + 350 / 2;
+    if (is_red == 0) x = 3000 - x;
+    aversive_goto_xy_abs(&aversive_device, x, y);
+    wait_done();
+#endif
+  }
+  else /* last cell not filled */
+  {
+    if (is_red) aversive_turn(&aversive_device, 95);
+    else aversive_turn(&aversive_device, -95);
+    wait_done();
+#if 0
+    aversive_move_forward(&aversive_device, 510);
+#else
+    int16_t a, x, y;
+    aversive_get_pos(&aversive_device, &a, &x, &y);
+    x = 450 + 350 * 2 + 350 / 2;
+    if (is_red == 0) x = 3000 - x;
+    aversive_goto_forward_xy_abs(&aversive_device, x, y + 100);
+#endif
+    wait_done();
+  }
+
   orient_north();
+
 #endif
 
   if (move_until_pawn() == 0)
