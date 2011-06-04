@@ -40,7 +40,7 @@ static int wait_done(void)
 
 void unit_rotate(void)
 {
-  int16_t a, x, y;
+  /* int16_t a, x, y; */
 
   aversive_turn(&aversive_device, -93);
   wait_done();

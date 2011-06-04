@@ -131,7 +131,7 @@ static void orient_south(void)
 }
 
 
-static void first_pos(void)
+static void __attribute__((unused)) first_pos(void)
 {
   int16_t posa, posx, posy;
   if (is_red) aversive_set_pos(&aversive_device, 0, 50 + 97, 0);
@@ -193,12 +193,25 @@ static unsigned int wait_something(unsigned int do_pawn, unsigned int is_north)
 	break ;
       }
 
+      /* front sharps */
       fl = sharp_read_fl();
       fr = sharp_read_fr();
 #define PAWN_DIST 170
       if (min(fl, fr) <= PAWN_DIST)
       {
 	aversive_stop(&aversive_device);
+	reason = DONE_REASON_SHARP;
+	break ;
+      }
+
+      /* lateral sharp */
+      fl = is_red ? sharp_read_rb() : sharp_read_lb();
+      if (fl < PAWN_DIST)
+      {
+	const int16_t a = is_red ? -90 : 90;
+	aversive_stop(&aversive_device);
+	aversive_turn(&aversive_device, a);
+	wait_done();
 	reason = DONE_REASON_SHARP;
 	break ;
       }
@@ -258,9 +271,9 @@ static void move_to_bonus(void)
   int16_t x, y;
 
   if (is_red)
-    x = 450 + 350 * 2 + 350 / 2;
+    x = 450 + 350 * 2 + 350;
   else
-    x = 3000 - (450 + 350 * 2 + 350 / 2);
+    x = 3000 - (450 + 350 * 2 + 350);
   y = 350 / 2;
 
  restart_move:
@@ -289,6 +302,16 @@ static void take_pawn(void)
     return ;
   }
 
+  /* do twice, may be pushed after moving forward a bit */
+  aversive_move_forward(&aversive_device, 15);
+  wait_done();
+  igreboard_get_gripper_switch(&igreboard_device, &is_pushed);
+  if (is_pushed == 1)
+  {
+    igreboard_close_gripper(&igreboard_device);
+    return ;
+  }
+
   takepawn_fsm_initialize(&fsm);
   fsm_execute_one(&fsm);
 }
@@ -300,10 +323,10 @@ void unit_bonus(void)
   first_pos();
 #else
   igreboard_get_color_switch(&igreboard_device, &is_red);
-  if (is_red) aversive_turn(&aversive_device, 90);
-  else aversive_turn(&aversive_device, -90);
+  if (is_red) aversive_turn(&aversive_device, 95);
+  else aversive_turn(&aversive_device, -95);
   wait_done();
-  aversive_move_forward(&aversive_device, 400);
+  aversive_move_forward(&aversive_device, 510);
   wait_done();
 #endif
 

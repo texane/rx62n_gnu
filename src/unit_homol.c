@@ -69,7 +69,8 @@ static inline unsigned int min(unsigned int a, unsigned int b)
   return a < b ? a : b;
 }
 
-static int wait_done_or_detected(int16_t x, int16_t y)
+static int __attribute__((unused)) wait_done_or_detected
+(int16_t x, int16_t y)
 {
   aversive_dev_t* const dev = &aversive_device;
   unsigned int fl, fr;
@@ -423,7 +424,8 @@ static void center_tile(void)
 {
   unsigned int tilex, tiley;
   int16_t posa, posx, posy;
-  int16_t midx, midy;
+  /* int16_t midx, midy; */
+  int16_t midy;
   int16_t d;
 
   aversive_get_pos(&aversive_device, &posa, &posx, &posy);
@@ -463,7 +465,7 @@ static unsigned int handle_done(void)
 {
   unsigned int can_redo = 0;
 
- switch_done_reason:
+ /* switch_done_reason: */
   switch (done_reason)
   {
   default:

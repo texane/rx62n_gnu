@@ -113,7 +113,7 @@ static void center_tile(void)
 
 void unit_pos(void)
 {
-  int16_t posa, posx, posy;
+  /* int16_t posa, posx, posy; */
   int is_done;
   unsigned int prev_is_red = (unsigned int)-1;
   
