@@ -343,7 +343,7 @@ void takepawn_fsm_initialize(fsm_t* fsm)
   data.state = INIT;
   data.fl = 0;
   data.fr = 0;
-  data.alpha = 0;
+  data.alpha = 5;
   data.status = 0;
 
   fsm->data = (void*)&data;

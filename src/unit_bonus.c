@@ -54,17 +54,15 @@ static int wait_done(void)
 }
 
 
-#if 0 /* unit */
-static void initialize(void)
+static void __attribute__((unused)) initialize(void)
 {
   /* initialize globals */
   igreboard_get_color_switch(&igreboard_device, &is_red);
 
 #if CONFIG_ENABLE_SONAR
-  sonar_finalize();
+  sonar_initialize();
 #endif
 }
-#endif
 
 
 static void finalize(void)
@@ -75,6 +73,7 @@ static void finalize(void)
 #if CONFIG_ENABLE_SONAR
   igreboard_disable_sonar(&igreboard_device);
 #endif
+  igreboard_open_gripper(&igreboard_device);
 }
 
 
@@ -205,8 +204,9 @@ static unsigned int wait_something(unsigned int do_pawn, unsigned int is_north)
       }
 
       /* lateral sharp */
+#define PAWN_LAT_DIST 300
       fl = is_red ? sharp_read_rb() : sharp_read_lb();
-      if (fl < PAWN_DIST)
+      if (fl < PAWN_LAT_DIST)
       {
 	const int16_t a = is_red ? -90 : 90;
 	aversive_stop(&aversive_device);
@@ -268,7 +268,9 @@ static int move_until_pawn(void)
 static void move_to_bonus(void)
 {
   unsigned int reason;
-  int16_t x, y;
+  int16_t prevy;
+  int16_t a, x, y;
+  int is_done;
 
   if (is_red)
     x = 450 + 350 * 2 + 350;
@@ -280,6 +282,28 @@ static void move_to_bonus(void)
   aversive_goto_forward_xy_abs(&aversive_device, x, y);
   reason = wait_something(0, 0);
   if (can_restart(reason)) goto restart_move;
+
+  /* move a bit */
+  if (reason == DONE_REASON_TRAJ)
+  {
+    aversive_get_pos(&aversive_device, &a, &x, &prevy);
+    aversive_move_forward(&aversive_device, 25);
+
+    /* wait until done or not moving anymore */
+    while (1)
+    {
+      swatch_wait_msecs(200);
+      aversive_is_traj_done(&aversive_device, &is_done);
+      if (is_done) break ;
+      aversive_get_pos(&aversive_device, &a, &x, &y);
+      if (prevy == y)
+      {
+	aversive_stop(&aversive_device);
+	break ;
+      }
+      prevy = y;
+    }
+  }
 }
 
 static void center_table(void)
@@ -328,9 +352,8 @@ void unit_bonus(void)
   wait_done();
   aversive_move_forward(&aversive_device, 510);
   wait_done();
-#endif
-
   orient_north();
+#endif
 
   if (move_until_pawn() == 0)
   {
