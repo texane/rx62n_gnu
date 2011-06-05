@@ -53,6 +53,51 @@ static int wait_done(void)
   return 0;
 }
 
+static void finalize(void);
+
+static unsigned int wait_done_or_not_pushed(void)
+{
+  unsigned int is_pushed;
+  int is_done;
+
+  while (1)
+  {
+    wait_abit();
+
+    /* gameover */
+    if (swatch_is_game_over())
+    {
+      aversive_stop(&aversive_device);
+      finalize();
+      while (1) ;
+    }
+
+    aversive_is_traj_done(&aversive_device, &is_done);
+    if (is_done) return 1;
+
+    igreboard_get_gripper_switch(&igreboard_device, &is_pushed);
+    if (is_pushed == 0)
+    {
+      aversive_stop(&aversive_device);
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+/* static void wait_done_or_not_pushed(unsigned int* is_pushed) */
+/* { */
+/*   aversive_dev_t* const dev = &aversive_device; */
+/*   int is_done; */
+/*   for (is_done = 0; is_done == 0; ) */
+/*   { */
+/*     wait_abit(); */
+/*     aversive_is_traj_done(dev, &is_done); */
+/*   } */
+
+/*   return 0; */
+/* } */
 
 static void __attribute__((unused)) initialize(void)
 {
@@ -272,7 +317,10 @@ static void move_to_bonus(void)
   int16_t a, x, y;
   int is_done;
 
-  x = 450 + 350 * 2 + 350;
+  x = 450 + 350 * 2;
+  if (is_red) x += 180;
+  else x += 250;
+
   if (is_red == 0) x = 3000 - x;
   y = 350 / 2;
 
@@ -386,12 +434,17 @@ void unit_bonus(void)
     aversive_get_pos(&aversive_device, &a, &x, &y);
     x = 450 + 350 * 2 + 350 / 2;
     if (is_red == 0) x = 3000 - x;
-    aversive_goto_forward_xy_abs(&aversive_device, x, y + 100);
+    aversive_goto_forward_xy_abs(&aversive_device, x, y + 70);
 #endif
     wait_done();
   }
 
   orient_north();
+
+  /* turn a bit */
+  const int16_t a = is_red ? -4 : 4;
+  aversive_turn(&aversive_device, a);
+  wait_done();
 
 #endif
 
@@ -402,6 +455,25 @@ void unit_bonus(void)
     orient_south();
     move_to_bonus();
     igreboard_open_gripper(&igreboard_device);
+
+    /* move back */
+    {
+      int16_t d;
+      unsigned int is_pushed;
+
+      for (d = 0; d < 500; d += 20)
+      {
+	aversive_move_forward(&aversive_device, -20);
+	is_pushed = wait_done_or_not_pushed();
+	if (is_pushed == 0) break ;
+      }
+
+      if (d < 500)
+      {
+	aversive_move_forward(&aversive_device, 500 - d);
+	wait_something(0, 0);
+      }
+    }
   }
 
   finalize();
